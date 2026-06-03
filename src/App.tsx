@@ -16,6 +16,7 @@ import ServedCountries from './components/ServedCountries';
 import ContactForm from './components/ContactForm';
 import Footer from './components/Footer';
 import GoogleAuth from './components/GoogleAuth';
+import LoadingScreen from './components/LoadingScreen';
 
 import * as Icons from 'lucide-react';
 
@@ -52,6 +53,7 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'home' | 'auth'>('home');
+  const [isSiteLoaded, setIsSiteLoaded] = useState(false);
 
   // Sync Google/Email Authorized User session on load using isolated StorageService
   useEffect(() => {
@@ -130,6 +132,10 @@ export default function App() {
     }, 60);
   };
 
+  if (!isSiteLoaded) {
+    return <LoadingScreen onComplete={() => setIsSiteLoaded(true)} />;
+  }
+
   return (
     <div className="min-h-screen relative text-slate-100 font-sans selection:bg-blue-600 selection:text-white antialiased">
       
@@ -149,13 +155,7 @@ export default function App() {
           }}
           className="flex items-center gap-2.5 group"
         >
-          <div 
-            className="w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center font-black text-white text-lg shadow-lg group-hover:scale-105 transition-transform" 
-            style={{ backgroundImage: `linear-gradient(to bottom right, ${content.theme.secondaryColor}, ${content.theme.accentColor})` }}
-          >
-            A
-          </div>
-          <span className="font-black text-xl tracking-wider text-white group-hover:text-blue-400 transition-colors uppercase">
+          <span className="font-black text-2xl tracking-[0.15em] bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400 uppercase transition-all duration-300 drop-shadow-sm group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
             {content.siteName}
           </span>
         </a>

@@ -17,9 +17,10 @@ interface ImageUploaderProps {
   placeholder?: string;
   className?: string;
   size?: 'compact' | 'normal';
+  accept?: string;
 }
 
-function ImageUploader({ label, value, onChange, placeholder = "https://...", className = "", size = "normal" }: ImageUploaderProps) {
+function ImageUploader({ label, value, onChange, placeholder = "https://...", className = "", size = "normal", accept = "image/*" }: ImageUploaderProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +71,7 @@ function ImageUploader({ label, value, onChange, placeholder = "https://...", cl
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept="image/*"
+          accept={accept}
           className="hidden"
         />
       </div>
@@ -87,7 +88,7 @@ function ImageUploader({ label, value, onChange, placeholder = "https://...", cl
           {isLocal && (
             <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-              Local Device Image
+              Local Device File
             </span>
           )}
         </div>
@@ -124,26 +125,35 @@ function ImageUploader({ label, value, onChange, placeholder = "https://...", cl
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept="image/*"
+          accept={accept}
           className="hidden"
         />
       </div>
       {/* Live Preview block */}
       {value && (
         <div className="flex items-center gap-2.5 bg-slate-950/40 p-2 rounded-xl border border-slate-900 animate-fadeIn">
-          <img
-            src={value}
-            alt="Preview"
-            className="w-10 h-10 rounded-lg object-cover border border-slate-800"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=40&auto=format&fit=crop';
-            }}
-            referrerPolicy="no-referrer"
-          />
+          {accept.includes('video') ? (
+            <video
+              src={value}
+              className="w-10 h-10 rounded-lg object-cover border border-slate-800"
+              muted
+              playsInline
+            />
+          ) : (
+            <img
+              src={value}
+              alt="Preview"
+              className="w-10 h-10 rounded-lg object-cover border border-slate-800"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=40&auto=format&fit=crop';
+              }}
+              referrerPolicy="no-referrer"
+            />
+          )}
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-mono text-slate-400 leading-none uppercase">Image Source Preview</p>
+            <p className="text-[10px] font-mono text-slate-400 leading-none uppercase">{accept.includes('video') ? 'Video' : 'Image'} Source Preview</p>
             <p className="text-[10px] font-mono text-slate-600 truncate mt-1">
-              {value.startsWith('data:') ? 'local_device_payload.png' : value}
+              {value.startsWith('data:') || value.startsWith('blob:') ? `local_device_payload.${accept.includes('video') ? 'mp4' : 'png'}` : value}
             </p>
           </div>
         </div>
