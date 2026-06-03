@@ -246,43 +246,45 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="flex flex-col gap-6 items-start">
         
-        {/* Left Side: Dynamic Workspace Rails */}
-        <div className="lg:col-span-3 flex flex-wrap lg:flex-col gap-2.5">
-          {(
-            [
-              { id: 'hero', label: 'Hero Workspace', icon: 'Layout' },
-              { id: 'services', label: 'Services CMS', icon: 'Layers' },
-              { id: 'portfolio', label: 'Portfolio Previews', icon: 'Code' },
-              { id: 'testimonials', label: 'Client Reviews', icon: 'MessageSquare' },
-              { id: 'stats', label: 'Stats Counters', icon: 'BarChart' },
-              { id: 'countries', label: 'Served Footprint', icon: 'Globe' },
-              { id: 'footer', label: 'Footer & Agency Info', icon: 'FolderOpen' },
-              { id: 'theme', label: 'Color & Glass FX', icon: 'Palette' },
-              { id: 'sync', label: 'Vercel & GitHub Sync', icon: 'CloudLightning' },
-            ] as const
-          ).map((t) => {
-            const LucideIcon = (Icons as any)[t.icon] || Icons.CheckCircle;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setActiveTab(t.id)}
-                className={`w-full text-left px-5 py-3.5 rounded-2xl flex items-center gap-3 font-semibold text-sm transition-all cursor-pointer ${
-                  activeTab === t.id 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/10' 
-                    : 'bg-slate-900/40 hover:bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-                }`}
-              >
-                <LucideIcon className="w-4 h-4 flex-shrink-0" />
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
+        {/* Top Side: Dynamic Workspace Rails */}
+        <div className="w-full flex-shrink-0">
+          <div className="flex flex-row overflow-x-auto pb-4 gap-2 border-b border-slate-800 scrollbar-hide">
+            {(
+              [
+                { id: 'hero', label: 'Hero Workspace', icon: 'Layout' },
+                { id: 'services', label: 'Services CMS', icon: 'Layers' },
+                { id: 'portfolio', label: 'Portfolio Previews', icon: 'Code' },
+                { id: 'testimonials', label: 'Client Reviews', icon: 'MessageSquare' },
+                { id: 'stats', label: 'Stats Counters', icon: 'BarChart' },
+                { id: 'countries', label: 'Served Footprint', icon: 'Globe' },
+                { id: 'footer', label: 'Footer & Agency Info', icon: 'FolderOpen' },
+                { id: 'theme', label: 'Color & Glass FX', icon: 'Palette' },
+                { id: 'sync', label: 'Vercel & GitHub Sync', icon: 'CloudLightning' },
+              ] as const
+            ).map((t) => {
+              const LucideIcon = (Icons as any)[t.icon] || Icons.CheckCircle;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-xl flex items-center gap-2 font-semibold text-xs whitespace-nowrap transition-all cursor-pointer ${
+                    activeTab === t.id 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/10' 
+                      : 'bg-slate-900/40 hover:bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  }`}
+                >
+                  <LucideIcon className="w-4 h-4" />
+                  <span>{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Right Side: Active Workspace panel */}
-        <div className="lg:col-span-9 p-8 bg-slate-950/40 border border-slate-800/80 rounded-3xl space-y-8 max-h-[70vh] overflow-y-auto">
+        {/* Action Bottom: Active Workspace panel */}
+        <div className="w-full p-4 md:p-6 bg-slate-950/40 border border-slate-800/80 rounded-3xl space-y-6">
           
           {/* ================= HERO WORKSPACE ================= */}
           {activeTab === 'hero' && (

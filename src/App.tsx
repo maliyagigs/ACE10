@@ -184,14 +184,14 @@ export default function App() {
             onClick={() => setIsAdmin(!isAdmin)}
             className={`flex items-center gap-2 text-xs font-mono font-bold px-4 py-2.5 rounded-full transition-all duration-300 relative overflow-hidden cursor-pointer border ${
               isAdmin 
-                ? 'bg-blue-600 text-white border-transparent' 
+                ? 'bg-blue-600 text-white border-transparent shadow-lg shadow-blue-500/20' 
                 : 'border-slate-800 bg-slate-900/50 hover:bg-slate-950 text-slate-350 hover:text-white'
             }`}
           >
             {isAdmin ? (
               <>
-                <Icons.Eye className="w-4 h-4" />
-                <span>EXIT DESIGN CONTROLLER</span>
+                <Icons.X className="w-4 h-4" />
+                <span>CLOSE CMS PANEL</span>
               </>
             ) : (
               <>
@@ -203,61 +203,72 @@ export default function App() {
         </div>
       </nav>
 
-      {isAdmin ? (
+      {currentView === 'auth' ? (
         <div className="pt-28 pb-12 px-6">
           <Suspense fallback={<CyberLoadingPlaceholder />}>
-            <AdminPanel content={content} setContent={handleUpdateContent} />
+            <LoginPage 
+              theme={content.theme} 
+              user={user} 
+              setUser={setUser} 
+              onBackToHome={() => setCurrentView('home')} 
+            />
           </Suspense>
         </div>
-      ) : currentView === 'auth' ? (
-        <Suspense fallback={<CyberLoadingPlaceholder />}>
-          <LoginPage 
-            theme={content.theme} 
-            user={user} 
-            setUser={setUser} 
-            onBackToHome={() => setCurrentView('home')} 
-          />
-        </Suspense>
       ) : (
-        <main className="relative">
-          {/* Hero section */}
-          <Hero 
-            content={content.hero} 
-            theme={content.theme} 
-            isLoggedIn={!!user}
-            onStartProject={() => {
-              if (user) {
-                scrollToSection('contact');
-              } else {
-                setCurrentView('auth');
-              }
-            }}
-          />
+        <div className="relative flex flex-col xl:flex-row">
           
-          {/* Numerical counters section */}
-          <Stats stats={content.stats} theme={content.theme} />
+          {/* Main App Content - scale down dynamically if admin side-panel is open on desktop */}
+          <main className={`relative transition-all duration-500 ease-in-out origin-top ${isAdmin ? 'xl:w-2/3 opacity-50 xl:opacity-100 xl:scale-95' : 'w-full scale-100'}`}>
+            <div className={`${isAdmin ? 'pointer-events-none' : ''}`}>
+              {/* Hero section */}
+              <Hero 
+                content={content.hero} 
+                theme={content.theme} 
+                isLoggedIn={!!user}
+                onStartProject={() => {
+                  if (user) {
+                    scrollToSection('contact');
+                  } else {
+                    setCurrentView('auth');
+                  }
+                }}
+              />
+              
+              {/* Numerical counters section */}
+              <Stats stats={content.stats} theme={content.theme} />
 
-          {/* Handcrafted Services layout with organic vector shapes rendering behind cards */}
-          <Services services={content.services} theme={content.theme} />
+              {/* Handcrafted Services layout with organic vector shapes rendering behind cards */}
+              <Services services={content.services} theme={content.theme} />
 
-          {/* Segment showing custom vertical project showcase mockups */}
-          <Portfolio portfolio={content.portfolio} theme={content.theme} />
+              {/* Segment showing custom vertical project showcase mockups */}
+              <Portfolio portfolio={content.portfolio} theme={content.theme} />
 
-          {/* Elegant benefits/features display */}
-          <WhyChooseUs theme={content.theme} siteName={content.siteName} />
+              {/* Elegant benefits/features display */}
+              <WhyChooseUs theme={content.theme} siteName={content.siteName} />
 
-          {/* Testimonial endorse panel */}
-          <Testimonials testimonials={content.testimonials} theme={content.theme} />
+              {/* Testimonial endorse panel */}
+              <Testimonials testimonials={content.testimonials} theme={content.theme} />
 
-          {/* Served Flags badge list */}
-          <ServedCountries countries={content.countries} theme={content.theme} />
+              {/* Served Flags badge list */}
+              <ServedCountries countries={content.countries} theme={content.theme} />
 
-          {/* Floating inputs contact quote selector */}
-          <ContactForm theme={content.theme} />
+              {/* Floating inputs contact quote selector */}
+              <ContactForm theme={content.theme} />
 
-          {/* Detailed scalable footer list */}
-          <Footer footer={content.footer} theme={content.theme} siteName={content.siteName} />
-        </main>
+              {/* Detailed scalable footer list */}
+              <Footer footer={content.footer} theme={content.theme} siteName={content.siteName} />
+            </div>
+          </main>
+
+          {/* Admin CMS Side Panel overlaying the layout smoothly */}
+          {isAdmin && (
+            <div className="xl:fixed xl:right-0 xl:top-20 xl:w-1/3 xl:h-[calc(100vh-80px)] xl:overflow-y-auto bg-slate-950/90 backdrop-blur-3xl border-l border-slate-800/80 shadow-2xl z-40 w-full animate-fade-in order-first xl:order-last pb-20 xl:pb-0">
+              <Suspense fallback={<CyberLoadingPlaceholder />}>
+                <AdminPanel content={content} setContent={handleUpdateContent} />
+              </Suspense>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

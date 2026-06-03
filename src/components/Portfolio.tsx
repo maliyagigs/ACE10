@@ -50,6 +50,35 @@ export default function Portfolio({ portfolio, theme }: PortfolioProps) {
     );
   }
 
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const runRandomSlide = () => {
+      // Random wait between 4s and 5s
+      const waitTime = Math.random() * 1000 + 4000;
+      
+      timeoutId = setTimeout(() => {
+        // Random amount to move: 1 to 3 items
+        const amount = Math.floor(Math.random() * 3) + 1;
+        // Random direction: 1 or -1
+        const runDirection = Math.random() > 0.5 ? 1 : -1;
+
+        setDirection(runDirection);
+        setActiveIdx((prev) => {
+          let next = prev + (runDirection * amount);
+          return (next % portfolio.length + portfolio.length) % portfolio.length;
+        });
+
+        // Queue next slide
+        runRandomSlide();
+      }, waitTime);
+    };
+
+    runRandomSlide();
+
+    return () => clearTimeout(timeoutId);
+  }, [portfolio.length]);
+
   const currentProject = portfolio[activeIdx] || portfolio[0];
 
   const handleNext = () => {
@@ -106,7 +135,7 @@ export default function Portfolio({ portfolio, theme }: PortfolioProps) {
         <div id="portfolio-horizontal-viewport" className="relative w-full overflow-hidden py-4">
           <div 
             id="portfolio-slider-track"
-            className="flex transition-transform duration-500 ease-out"
+            className="flex transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
             style={{ 
               transform: `translateX(-${translateX}px) translateZ(0)`,
               willChange: 'transform',
