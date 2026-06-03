@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Glass';
+  src: url('https://www.fontspace.com/get/family/f15598.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aloevera';
+  src: url('https://www.fontspace.com/get/family/f51390.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Inter", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-glass: "Glass", "Space Grotesk", sans-serif;
+  --font-aloevera: "Aloevera", "Inter", sans-serif;
+}
+
+/* Precise high-end animation classes */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+/* Custom scrollbar adjustments for a clean tech aesthetic */
+html {
+  scroll-padding-top: 5rem;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* GPU Hardware Acceleration & Subpixel rendering Optimizers for specific animating items */
+/* Enforces high-performance hardware compositing to bypass layout reflow on web environments */
+.letter,
+.subheadline,
+.animate-spin-slow {
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+  will-change: transform, opacity;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force hardware composites only on specific scaling hover states */
+.group:hover .group-hover\:scale-105,
+.group:hover .group-hover\:scale-110 {
+  transform: translate3d(0, 0, 0) scale(1.05);
+  backface-visibility: hidden;
+}
+
+.group:hover .group-hover\:scale-110 {
+  transform: translate3d(0, 0, 0) scale(1.1);
+}
+
+/* High Performance Native CSS Compositor Animations */
+@keyframes letter-entrance {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0) scale(0.8) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-letter {
+  animation: letter-entrance 650ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 1400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+

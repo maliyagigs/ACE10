@@ -1,0 +1,6 @@
+{
+  "name": "FALA STUDY",
+  "description": "A modern agency website for creative digital experiences.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
