@@ -20,7 +20,7 @@ export default function Testimonials({ testimonials, theme, header }: Testimonia
   const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
   if (!testimonials || testimonials.length === 0) {
-    return <div ref={sectionRef as any} style={{ display: 'none' }} />;
+    return null;
   }
 
   const title = header?.title || "Client Success Testimonials";

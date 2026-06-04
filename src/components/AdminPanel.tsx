@@ -181,22 +181,17 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
     setSyncMessage('Writing CMS configs to workspace...');
     
     try {
-      const response = await fetch(`/api/save-content`, {
+      const apiBase = window.location.hostname.includes('run.app') || window.location.hostname === 'localhost' || window.location.hostname.includes('3000')
+        ? ''
+        : 'https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app';
+
+      const response = await fetch(`${apiBase}/api/save-content`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(content)
       });
       
-      if (!response.ok) {
-        if (response.status === 405 || response.status === 404) {
-          throw new Error('Static host detected (like Vercel). Cannot save files directly from here. Please use the "Copy CMS Configuration" button instead.');
-        }
-        const errData = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errData}`);
-      }
+      if (!response.ok) throw new Error('HTTP ' + response.status);
       
       setSyncMessage('Workspace configuration saved!');
       
@@ -207,7 +202,7 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
       }, 1000);
       
     } catch (err: any) {
-      console.error("DEBUG CMS SYNC ERROR:", err);
+      console.error(err);
       setSyncMessage('');
       setIsSyncing(false);
       alert('CMS Sync Failed: ' + (err.message || err));
@@ -238,7 +233,7 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
   };
 
   return (
-    <div className="p-6 md:p-10 max-w-6xl mx-auto bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-[2.5rem] my-10 shadow-2xl">
+    <div className="p-4 sm:p-6 w-full mx-auto bg-slate-900/60 backdrop-blur-xl shadow-2xl min-h-full">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 border-b border-slate-800 mb-8">
         <div>
           <div className="flex items-center gap-2 text-blue-400 font-mono text-sm uppercase">

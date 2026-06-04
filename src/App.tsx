@@ -81,14 +81,17 @@ export default function App() {
     setContent(syncContent);
 
     // 2. Query the live AI Studio Workspace Server to read the database-level config
-    fetch(`/api/get-content`)
-      .then(async (res) => {
+    const apiBase =
+      window.location.hostname.includes("run.app") ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname.includes("3000")
+        ? ""
+        : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
+
+    fetch(`${apiBase}/api/get-content`)
+      .then((res) => {
         if (!res.ok) throw new Error("HTTP " + res.status);
-        const text = await res.text();
-        if (text.startsWith('<')) {
-          throw new Error('Static host HTML response');
-        }
-        return JSON.parse(text);
+        return res.json();
       })
       .then((liveContent) => {
         if (
@@ -114,6 +117,22 @@ export default function App() {
   const handleUpdateContent = (newContent: AppContent) => {
     setContent(newContent);
     StorageService.saveContent(newContent);
+
+    const apiBase =
+      window.location.hostname.includes("run.app") ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname.includes("3000")
+        ? ""
+        : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
+
+    // Broadcast file-level CMS update payload to the backend server to preserve state across builds
+    fetch(`${apiBase}/api/save-content`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newContent),
+    }).catch((err) => {
+      console.warn("[CMS Sync] Local workspace sync error:", err);
+    });
   };
 
   const scrollToSection = (id: string, e?: React.MouseEvent) => {
@@ -289,9 +308,9 @@ export default function App() {
             <div className="relative flex flex-col xl:flex-row">
               {/* Main App Content - scale down dynamically if admin side-panel is open on desktop */}
               <main
-                className={`relative transition-all duration-500 ease-in-out origin-top ${isAdmin ? "xl:w-2/3 opacity-50 xl:opacity-100 xl:scale-95" : "w-full scale-100"}`}
+                className={`relative transition-all duration-500 ease-in-out origin-top ${isAdmin ? "opacity-50 lg:opacity-100 lg:scale-[0.98] lg:w-[calc(100%-550px)]" : "w-full scale-100"}`}
               >
-                <div className={`${isAdmin ? "pointer-events-none" : ""}`}>
+                <div className={`${isAdmin ? "pointer-events-none lg:pointer-events-auto" : ""}`}>
                   {/* Hero section */}
                   <Hero
                     content={content.hero}
@@ -365,7 +384,7 @@ export default function App() {
 
               {/* Admin CMS Side Panel overlaying the layout smoothly */}
               {isAdmin && (
-                <div className="xl:fixed xl:right-0 xl:top-20 xl:w-1/3 xl:h-[calc(100vh-80px)] xl:overflow-y-auto bg-slate-950/90 backdrop-blur-3xl border-l border-slate-800/80 shadow-2xl z-40 w-full animate-fade-in order-first xl:order-last pb-20 xl:pb-0">
+                <div className="fixed right-0 top-20 w-full lg:w-[550px] h-[calc(100vh-80px)] overflow-y-auto bg-slate-950/95 backdrop-blur-3xl border-l border-slate-800/80 shadow-2xl z-50 animate-fade-in pb-20 lg:pb-0">
                   <Suspense fallback={<CyberLoadingPlaceholder />}>
                     <AdminPanel
                       content={content}

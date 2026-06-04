@@ -11,13 +11,6 @@ async function startServer() {
   // Enable CORS so the live Vercel site can query config updates from this server
   app.use(cors({ origin: "*" }));
 
-  app.use((req, res, next) => {
-    if (req.url.includes('/api/')) {
-      console.log(`[CMS Server] Incoming API Request: ${req.method} ${req.url}`);
-    }
-    next();
-  });
-
   // Configure JSON body parser to accept full CMS configurations
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -73,7 +66,6 @@ async function startServer() {
 
   // API Route: Saves updated content back into the workspace's data.ts
   app.post("/api/save-content", (req, res) => {
-    console.log("[CMS Server] Received POST to /api/save-content", req.body ? Object.keys(req.body).length : "No body");
     try {
       const newContent = req.body;
       if (!newContent || typeof newContent !== 'object' || Object.keys(newContent).length === 0) {
