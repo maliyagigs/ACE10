@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from 'motion/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import * as Icons from 'lucide-react';
 import { AppContent } from '../types';
 
@@ -10,9 +10,9 @@ interface TestimonialsProps {
 }
 
 export default function Testimonials({ testimonials, theme, header }: TestimonialsProps) {
-  const sectionRef = useRef<HTMLElement>(null);
+  const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
+    target: targetElement ? { current: targetElement } : undefined,
     offset: ["start end", "end start"]
   });
 
@@ -28,7 +28,7 @@ export default function Testimonials({ testimonials, theme, header }: Testimonia
 
   return (
     <motion.section 
-      ref={sectionRef}
+      ref={setTargetElement} 
       id="testimonials" 
       style={{ scale }}
       className="py-28 px-6 md:px-12 bg-slate-950/20 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative"

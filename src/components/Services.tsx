@@ -1,7 +1,7 @@
 import { motion, useMotionValue, useMotionTemplate, useScroll, useTransform, useSpring } from 'motion/react';
 import * as Icons from 'lucide-react';
 import { AppContent } from '../types';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
 interface ServicesProps {
   services: AppContent['services'];
@@ -83,11 +83,11 @@ function ServiceCard({ service, theme, index, className }: ServiceCardProps) {
 }
 
 export default function Services({ services, theme, header }: ServicesProps) {
-  const sectionRef = useRef<HTMLElement>(null);
+  const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   
   // Fey Scroll Animation Logic
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
+    target: targetElement ? { current: targetElement } : undefined,
     offset: ["start end", "end start"]
   });
 
@@ -113,12 +113,12 @@ export default function Services({ services, theme, header }: ServicesProps) {
   const description = header?.description || "We deploy precision frameworks to scale your infrastructure, optimize conversion lattices, and define market-leading interfaces.";
 
   return (
-    <section 
-      ref={sectionRef} 
-      id="services" 
-      className="relative py-40 px-6 md:px-12 overflow-visible select-none border-t border-white/[0.03]"
-      style={{ perspective: "1500px" }}
-    >
+      <motion.section 
+        ref={setTargetElement} 
+        id="services" 
+        className="relative py-40 px-6 md:px-12 overflow-visible select-none border-t border-white/[0.03]"
+        style={{ perspective: "1500px" }}
+      >
       
       {/* 1. Fey Style Grid Background */}
       <div 
@@ -189,6 +189,6 @@ export default function Services({ services, theme, header }: ServicesProps) {
           ))}
         </div>
       </motion.div>
-    </section>
+      </motion.section>
   );
 }
