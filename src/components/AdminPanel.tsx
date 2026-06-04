@@ -183,7 +183,10 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
     try {
       const response = await fetch(`/api/save-content`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(content)
       });
       
