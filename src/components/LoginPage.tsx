@@ -45,9 +45,7 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const [clientId, setClientId] = useState<string>(() => {
-    return StorageService.loadGoogleClientId();
-  });
+  const clientId = "793024535052-2fjl8pdruv3m22oglc3lsiqkqi3qf9cp.apps.googleusercontent.com";
   const [gsiLoaded, setGsiLoaded] = useState(false);
   const btnContainerRef = useRef<HTMLDivElement>(null);
 
@@ -129,12 +127,6 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
 
     return () => clearTimeout(timer);
   }, [gsiLoaded, clientId, user, activeTab]);
-
-  const handleSaveClientId = (newId: string) => {
-    const cleaned = newId.trim();
-    setClientId(cleaned);
-    StorageService.saveGoogleClientId(cleaned);
-  };
 
   // Email Sign-In handler
   const handleEmailSignIn = (e: React.FormEvent) => {
@@ -427,66 +419,20 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
           <div className="flex flex-col items-center justify-center py-5 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40 gap-3">
             {clientId ? (
               <div className="flex flex-col items-center gap-2">
-                <p className="text-center text-[10px] font-mono text-emerald-400 font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-                  Google Integration Ready
-                </p>
                 <div id="standalone-google-button-container" className="min-h-[44px]" />
               </div>
             ) : (
               <div className="text-center p-3 space-y-1.5">
                 <Icons.Lock className="w-6 h-6 text-slate-600 mx-auto" />
                 <p className="text-xs text-slate-400 font-bold">Standard Google OAuth bypass available</p>
-                <p className="text-[10px] text-slate-500 max-w-[320px]">
+                <p className="text-[10px] text-slate-550 max-w-[320px]">
                   Provide a Google OAuth Client ID below to display the official custom interactive container iframe.
                 </p>
               </div>
             )}
           </div>
-
-          {/* Standalone Instant Demo Bypass button */}
-          <div className="bg-slate-950/45 p-4 rounded-xl border border-slate-900 flex justify-between items-center text-xs">
-            <div className="mr-2">
-              <p className="font-bold text-slate-350">Quick Live Demo?</p>
-              <p className="text-[10px] text-slate-500">Log in instantly via a preset mock session profile.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const mockUser: GoogleUser = {
-                  name: "Maliya Gigs",
-                  email: "maliyagigs@gmail.com",
-                  picture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
-                  type: 'google'
-                };
-                setUser(mockUser);
-                StorageService.saveCurrentUser(mockUser);
-                setSuccessMsg("Welcome! Authenticated via bypass.");
-                setTimeout(() => {
-                  onBackToHome();
-                }, 900);
-              }}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900 text-[11px] text-blue-450 hover:text-white font-mono shrink-0 cursor-pointer"
-            >
-              Mock Bypass
-            </button>
-          </div>
-
-          {/* Client ID Configuration Field directly in Standalone page */}
-          <div className="bg-slate-950/40 p-3 rounded-xl border border-slate-850">
-            <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-500 font-extrabold mb-1 px-0.5">
-              Setup Google Client ID (Local Save)
-            </label>
-            <input
-              type="text"
-              defaultValue={clientId}
-              onChange={(e) => handleSaveClientId(e.target.value)}
-              placeholder="Paste Google Client ID here..."
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-400 placeholder:text-slate-700 focus:border-blue-500 outline-none"
-            />
-          </div>
+        </div>
         </div>
       </div>
-    </div>
   );
 }

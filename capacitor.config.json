@@ -1,0 +1,8 @@
+{
+  "appId": "com.ace10.agency",
+  "appName": "ACE10 Design",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -54,9 +54,7 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const [clientId, setClientId] = useState<string>(() => {
-    return StorageService.loadGoogleClientId();
-  });
+  const clientId = "793024535052-2fjl8pdruv3m22oglc3lsiqkqi3qf9cp.apps.googleusercontent.com";
   const [gsiLoaded, setGsiLoaded] = useState(false);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -152,12 +150,6 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
 
     return () => clearTimeout(timer);
   }, [gsiLoaded, clientId, user, modalOpen, activeTab]);
-
-  const handleSaveClientId = (newId: string) => {
-    const cleaned = newId.trim();
-    setClientId(cleaned);
-    StorageService.saveGoogleClientId(cleaned);
-  };
 
   const handleSignOut = () => {
     setUser(null);
@@ -531,17 +523,11 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
               <div className="flex-grow border-t border-slate-850"></div>
               <span className="flex-shrink mx-4 text-slate-500 font-mono text-[10px] font-bold uppercase tracking-wider">or sign in with</span>
               <div className="flex-grow border-t border-slate-850"></div>
-            </div>
-
-            {/* Official Google identity loader card and mount element */}
+                {/* Official Google identity loader card and mount element */}
             <div className="space-y-3 relative z-10">
               <div className="flex flex-col items-center justify-center py-4 border border-dashed border-slate-800/80 rounded-2xl bg-slate-950/40 gap-3">
                 {clientId ? (
                   <div className="flex flex-col items-center gap-2">
-                    <p className="text-center text-[10px] font-mono text-emerald-400 font-semibold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-                      Google SDK Configured
-                    </p>
                     <div id="google-gsi-button-container" ref={btnContainerRef} className="min-h-[44px]" />
                   </div>
                 ) : (
@@ -554,48 +540,7 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
                   </div>
                 )}
               </div>
-
-              {/* Preview Demo Bypass (Super fast mockup login) */}
-              <div className="bg-slate-950/20 p-3.5 rounded-xl border border-slate-900/60 flex justify-between items-center text-xs">
-                <div>
-                  <p className="font-bold text-slate-300">Just want a fast preview?</p>
-                  <p className="text-[10px] text-slate-500 leading-normal">Bypass configuration via client mock session.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const mockUser: GoogleUser = {
-                      name: "Maliya Gigs",
-                      email: "maliyagigs@gmail.com",
-                      picture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
-                      type: 'google'
-                    };
-                    setUser(mockUser);
-                    localStorage.setItem('ace10_google_user', JSON.stringify(mockUser));
-                    setModalOpen(false);
-                    setErrorMsg(null);
-                    setSuccessMsg(null);
-                  }}
-                  className="px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/80 text-[11px] text-blue-400 hover:text-white transition-all font-mono"
-                >
-                  Mock Bypass
-                </button>
-              </div>
-
-              {/* Developer Client ID settings option */}
-              <div className="bg-slate-950/40 p-3 rounded-xl border border-slate-850">
-                <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-500 font-extrabold mb-1">
-                  Developer Google Client-ID
-                </label>
-                <input
-                  type="text"
-                  defaultValue={clientId}
-                  onChange={(e) => handleSaveClientId(e.target.value)}
-                  placeholder="Paste Google Client ID here..."
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-xs font-mono text-slate-400 placeholder:text-slate-700 focus:border-blue-500 outline-none"
-                />
-              </div>
-            </div>
+            </div>          </div>
 
             {/* Footer Workspace Info */}
             <div className="border-t border-slate-850 pt-4 mt-2 text-[10px] text-slate-500 flex items-center justify-between font-medium relative z-10">

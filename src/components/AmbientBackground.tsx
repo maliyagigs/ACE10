@@ -65,18 +65,22 @@ export default function AmbientBackground({ theme }: AmbientBackgroundProps) {
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
-        // Draw particle
+        // Draw particle outer halo glow (fully hardware-accelerated, replaces slow CPU shadowBlur)
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * 3.0, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha * 0.25;
+        ctx.fill();
+
+        // Draw particle core
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
         ctx.globalAlpha = p.alpha;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = p.color;
         ctx.fill();
       });
 
       // Draw faint connections
-      ctx.shadowBlur = 0;
       ctx.globalAlpha = 0.05;
       ctx.strokeStyle = theme.secondaryColor;
       for (let i = 0; i < particles.length; i++) {

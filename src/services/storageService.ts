@@ -165,12 +165,11 @@ export const StorageService = {
    * 4. Google GSI OAuth client-ID configuration
    */
   loadGoogleClientId(): string {
-    const metaEnv = (import.meta as any).env;
-    return localStorage.getItem('ace10_google_client_id') || (metaEnv && metaEnv.VITE_GOOGLE_CLIENT_ID) || '';
+    return '793024535052-2fjl8pdruv3m22oglc3lsiqkqi3qf9cp.apps.googleusercontent.com';
   },
 
   saveGoogleClientId(clientId: string): void {
-    localStorage.setItem('ace10_google_client_id', clientId.trim());
+    // Storage of custom client ID is disabled since it is now fixed
   },
 
   /**
