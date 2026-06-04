@@ -44,8 +44,27 @@ export default function WhyChooseUs({ theme, siteName }: WhyChooseUsProps) {
         
         {/* Left column */}
         <div className="lg:col-span-5 space-y-6">
-          <h2 className="text-3xl md:text-5xl font-glass text-white tracking-wider leading-tight uppercase">
-            Why Hundreds of Leaders Trust {siteName}
+          <h2 className="text-3xl md:text-5xl font-glass text-white tracking-wider leading-tight uppercase relative inline-block">
+            {`Why Hundreds of Leaders Trust ${siteName}`.split('').map((char, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.01,
+                  delay: i * 0.03, // Fast typewriter speed
+                  ease: "linear"
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
+            <motion.span
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ repeat: Infinity, duration: 0.8, ease: "steps(2)" }}
+              className="inline-block w-[3px] h-[0.8em] bg-blue-500 ml-1 align-middle"
+            />
           </h2>
           <p className="text-slate-400 text-lg leading-relaxed pt-2">
             We operate at the intersection of technological logic and aesthetic brilliance. No mock layout simulations, only state-of-the-art results tailored to your market.

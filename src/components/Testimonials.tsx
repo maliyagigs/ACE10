@@ -1,4 +1,5 @@
-import { motion } from 'motion/react';
+import { motion, useScroll, useTransform } from 'motion/react';
+import { useRef } from 'react';
 import * as Icons from 'lucide-react';
 import { AppContent } from '../types';
 
@@ -8,13 +9,30 @@ interface TestimonialsProps {
 }
 
 export default function Testimonials({ testimonials, theme }: TestimonialsProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0.95, 1, 1, 0.95]);
+  const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
+
   if (!testimonials || testimonials.length === 0) {
     return null;
   }
 
   return (
-    <section id="testimonials" className="py-28 px-6 md:px-12 bg-slate-950/20 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative">
-      <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-rose-500/5 filter blur-[120px] pointer-events-none" />
+    <motion.section 
+      ref={sectionRef}
+      id="testimonials" 
+      style={{ scale }}
+      className="py-28 px-6 md:px-12 bg-slate-950/20 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative"
+    >
+      <motion.div 
+        style={{ y }}
+        className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-rose-500/5 filter blur-[120px] pointer-events-none" 
+      />
 
       <div className="max-w-7xl mx-auto relative z-10">
         
@@ -72,6 +90,6 @@ export default function Testimonials({ testimonials, theme }: TestimonialsProps)
         </div>
 
       </div>
-    </section>
+    </motion.section>
   );
 }

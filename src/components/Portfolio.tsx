@@ -30,13 +30,16 @@ export default function Portfolio({ portfolio, theme }: PortfolioProps) {
   }, []);
 
   const getCardWidth = () => {
-    if (windowWidth < 640) return 295;
-    if (windowWidth < 768) return 360;
-    if (windowWidth < 1024) return 400;
-    return 440; // Desktop width
+    if (windowWidth < 640) return 160;
+    if (windowWidth < 768) return 220;
+    if (windowWidth < 1024) return 260;
+    return 300; // More compact width for better 5-card grouping
   };
 
-  const getGap = () => 24;
+  const getGap = () => {
+    if (windowWidth < 768) return 12;
+    return 20;
+  };
 
   const cardWidth = getCardWidth();
   const gap = getGap();
@@ -54,18 +57,17 @@ export default function Portfolio({ portfolio, theme }: PortfolioProps) {
     let timeoutId: NodeJS.Timeout;
 
     const runRandomSlide = () => {
-      // Random wait between 4s and 5s
-      const waitTime = Math.random() * 1000 + 4000;
+      // Random wait between 3s and 5s for more dynamic feel
+      const waitTime = Math.random() * 2000 + 3000;
       
       timeoutId = setTimeout(() => {
-        // Random amount to move: 1 to 3 items
-        const amount = Math.floor(Math.random() * 3) + 1;
-        // Random direction: 1 or -1
+        // Move by 1 or 2 items randomly
+        const steps = Math.random() > 0.8 ? 2 : 1;
         const runDirection = Math.random() > 0.5 ? 1 : -1;
 
         setDirection(runDirection);
         setActiveIdx((prev) => {
-          let next = prev + (runDirection * amount);
+          let next = prev + (runDirection * steps);
           return (next % portfolio.length + portfolio.length) % portfolio.length;
         });
 
@@ -91,12 +93,13 @@ export default function Portfolio({ portfolio, theme }: PortfolioProps) {
     setActiveIdx((prev) => (prev - 1 + portfolio.length) % portfolio.length);
   };
 
-  // Translate offset inline
-  const translateX = activeIdx * (cardWidth + gap);
+  // Center the active card in the viewport
+  const viewportWidth = windowWidth > 1280 ? 1280 : windowWidth;
+  const translateX = activeIdx * (cardWidth + gap) - (viewportWidth / 2) + (cardWidth / 2) + (windowWidth > 1280 ? (windowWidth / 2 - 640) : 0);
 
   return (
-    <section id="portfolio" className="py-28 px-6 md:px-12 bg-slate-950/20 backdrop-blur-3xl border-t border-slate-900 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
+    <section id="portfolio" className="py-28 px-0 md:px-0 bg-slate-950/20 backdrop-blur-3xl border-t border-slate-900 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
         
         {/* Header Block */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
@@ -110,11 +113,11 @@ export default function Portfolio({ portfolio, theme }: PortfolioProps) {
           </div>
           
           {/* Controls */}
-          <div id="portfolio-controls-bar" className="flex items-center gap-3">
+          <div id="portfolio-controls-bar" className="flex items-center gap-3 text-white">
             <button 
               id="portfolio-control-btn-prev"
               onClick={handlePrev}
-              className="p-4 rounded-full border border-slate-800 bg-slate-900/60 hover:border-slate-600 text-white transition-colors cursor-pointer"
+              className="p-4 rounded-full border border-slate-800 bg-slate-900/60 hover:border-slate-600 transition-colors cursor-pointer"
             >
               <Icons.ArrowLeft className="w-5 h-5" />
             </button>
@@ -124,95 +127,116 @@ export default function Portfolio({ portfolio, theme }: PortfolioProps) {
             <button 
               id="portfolio-control-btn-next"
               onClick={handleNext}
-              className="p-4 rounded-full border border-slate-800 bg-slate-900/60 hover:border-slate-600 text-white transition-colors cursor-pointer"
+              className="p-4 rounded-full border border-slate-800 bg-slate-900/60 hover:border-slate-600 transition-colors cursor-pointer"
             >
               <Icons.ArrowRight className="w-5 h-5" />
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Main Sideshow Block - Inline Horizontally */}
-        <div id="portfolio-horizontal-viewport" className="relative w-full overflow-hidden py-4">
-          <div 
-            id="portfolio-slider-track"
-            className="flex transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
-            style={{ 
-              transform: `translateX(-${translateX}px) translateZ(0)`,
-              willChange: 'transform',
-              gap: `${gap}px`
-            }}
-          >
-            {portfolio.map((project, idx) => {
-              const isActive = idx === activeIdx;
-              return (
-                <div 
-                  key={project.id}
-                  id={`portfolio-card-${project.id}`}
-                  style={{ width: `${cardWidth}px` }}
-                  className={`shrink-0 rounded-[2rem] border overflow-hidden bg-slate-900/40 backdrop-blur-md transition-all duration-500 flex flex-col group h-[480px] sm:h-[500px] ${
-                    isActive 
-                      ? 'border-blue-500/50 shadow-2xl shadow-blue-500/10 scale-100 opacity-100' 
-                      : 'border-slate-900 opacity-40 scale-95 hover:opacity-75 hover:border-slate-800'
-                  }`}
-                >
-                  {/* Image container with Category overlay */}
-                  <div className="relative w-full h-[58%] overflow-hidden">
-                    <img
-                      src={project.image || 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=400&auto=format&fit=crop'}
-                      alt={project.title}
-                      className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform duration-[2000ms] brightness-90 group-hover:brightness-100"
-                      referrerPolicy="no-referrer"
-                    />
-                    
-                    {/* Category floating badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-slate-950/80 backdrop-blur-md text-blue-400 border border-blue-500/30 text-xs font-mono rounded-lg font-bold">
-                        {project.category || 'Digital Ecosystem'}
-                      </span>
-                    </div>
+      {/* Main Sideshow Block - Inline Horizontally */}
+      <div id="portfolio-horizontal-viewport" className="relative w-full overflow-visible py-12 [perspective:2400px]">
+        <div 
+          id="portfolio-slider-track"
+          className="flex transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] [transform-style:preserve-3d]"
+          style={{ 
+            transform: `translateX(-${translateX}px) translateZ(0)`,
+            willChange: 'transform',
+            gap: `${gap}px`
+          }}
+        >
+          {portfolio.map((project, idx) => {
+            const distance = Math.abs(idx - activeIdx);
+            const isActive = idx === activeIdx;
+            
+            // 3D effect: Display 5 cards (active + 2 each side)
+            // Set scale and opacity to give depth without rotation
+            const scale = isActive ? 1.05 : (distance === 1 ? 0.92 : (distance === 2 ? 0.78 : 0.65));
+            const opacity = isActive ? 1 : (distance === 1 ? 0.9 : (distance === 2 ? 0.7 : 0.3));
+            
+            // Deep layering without rotation for a "front facing" clean look
+            const translateZ = isActive ? 200 : (distance === 1 ? -50 : (distance === 2 ? -250 : -600));
+            const rotateY = 0; // Cards now face the user directly
+            
+            // No horizontal shift needed when front-facing for clarity
+            const translateX_3D = 0;
 
-                    {/* Dark gradient overlap inside simulated viewport screen */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none" />
+            return (
+              <div 
+                key={project.id}
+                id={`portfolio-card-${project.id}`}
+                style={{ 
+                  width: `${cardWidth}px`,
+                  transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) translateX(${translateX_3D}px) scale(${scale})`,
+                  opacity: opacity,
+                  zIndex: isActive ? 50 : 30 - distance
+                }}
+                className={`shrink-0 rounded-[1.5rem] md:rounded-[2rem] border overflow-hidden bg-slate-900/40 backdrop-blur-xl transition-all duration-[1000ms] ease-out flex flex-col group h-[280px] sm:h-[400px] md:h-[480px] ${
+                  isActive 
+                    ? 'border-blue-500/60 shadow-2xl shadow-blue-500/20' 
+                    : 'border-white/5'
+                }`}
+              >
+                {/* Image container with Category overlay */}
+                <div className="relative w-full h-[58%] overflow-hidden">
+                  <img
+                    src={project.image || 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=400&auto=format&fit=crop'}
+                    alt={project.title}
+                    className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform duration-[2000ms] brightness-90 group-hover:brightness-100"
+                    referrerPolicy="no-referrer"
+                  />
+                  
+                  {/* Category floating badge */}
+                  <div className="absolute top-4 left-4">
+                    <span className="px-3 py-1 bg-slate-950/80 backdrop-blur-md text-blue-400 border border-blue-500/30 text-xs font-mono rounded-lg font-bold">
+                      {project.category || 'Digital Ecosystem'}
+                    </span>
                   </div>
 
-                  {/* Body content with details */}
-                  <div className="p-6 flex flex-col justify-between flex-grow">
-                    <div className="space-y-2">
-                      <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight group-hover:text-blue-400 transition-colors">
-                        {project.title}
-                      </h3>
-                      <p className="text-slate-400 text-sm leading-relaxed line-clamp-2">
-                        {project.description}
-                      </p>
-                    </div>
+                  {/* Dark gradient overlap inside simulated viewport screen */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none" />
+                </div>
 
-                    {/* Footer specs and real-time navigation link */}
-                    <div className="border-t border-slate-850/60 pt-4 flex items-center justify-between mt-auto">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-mono text-slate-500">INTERFACE TECH</span>
-                        <span className="text-xs font-semibold text-slate-300">React SPA / Tailwind CSS</span>
-                      </div>
-                      
-                      {project.webUrl && (
-                        <a
-                          href={project.webUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          id={`portfolio-btn-link-${project.id}`}
-                          className="px-4 py-2 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-100 transition-all text-xs flex items-center gap-1.5 shadow-lg group-hover:-translate-y-0.5"
-                        >
-                          <span>Live Link</span>
-                          <Icons.ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      )}
+                {/* Body content with details */}
+                <div className="p-6 flex flex-col justify-between flex-grow">
+                  <div className="space-y-2">
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight group-hover:text-blue-400 transition-colors">
+                      {project.title}
+                    </h3>
+                    <p className="text-slate-400 text-sm leading-relaxed line-clamp-2">
+                      {project.description}
+                    </p>
+                  </div>
+
+                  {/* Footer specs and real-time navigation link */}
+                  <div className="border-t border-slate-850/60 pt-4 flex items-center justify-between mt-auto">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-mono text-slate-500">INTERFACE TECH</span>
+                      <span className="text-xs font-semibold text-slate-300">React SPA / Tailwind CSS</span>
                     </div>
+                    
+                    {project.webUrl && (
+                      <a
+                        href={project.webUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        id={`portfolio-btn-link-${project.id}`}
+                        className="px-4 py-2 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-100 transition-all text-xs flex items-center gap-1.5 shadow-lg group-hover:-translate-y-0.5"
+                      >
+                        <span>Live Link</span>
+                        <Icons.ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Quick Dot Slide Indicators */}
         <div id="portfolio-dots-slider" className="flex items-center justify-center gap-2 pt-8">
           {portfolio.map((_, idx) => (
@@ -227,7 +251,6 @@ export default function Portfolio({ portfolio, theme }: PortfolioProps) {
             />
           ))}
         </div>
-
       </div>
     </section>
   );

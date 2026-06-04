@@ -21,17 +21,20 @@ export default function Hero({ content, theme, isLoggedIn, onStartProject }: Her
 
     // Split text into words, then words into characters to prevent mid-word breaks
     // Fully GPU Accelerated with CSS translate3d layers to avoid main-thread script lag
-    const text = content.headline || "We Build Websites That Grow Your Business";
+    const text = content.headline || "We Build Websites That Grow Your Business.";
     let globalIndex = 0;
     headlineRef.current.innerHTML = text
       .split(' ')
       .map((word) => {
+        const isBusiness = word.toLowerCase().replace(/[^a-z]/g, '') === 'business';
         const letters = word
           .split('')
           .map((char) => {
             const delay = globalIndex * 12;
             globalIndex++;
-            return `<span class="letter inline-block font-aloevera tracking-wide font-semibold opacity-0 animate-[letter-entrance_650ms_cubic-bezier(0.16,1,0.3,1)_forwards]" style="animation-delay: ${delay}ms;">${char}</span>`;
+            const isGreen = (isBusiness && char !== '.') || char === '.';
+            const textColor = isGreen ? 'text-emerald-400' : 'text-white';
+            return `<span class="letter inline-block font-aloevera tracking-wide font-semibold opacity-0 ${textColor} animate-[letter-entrance_650ms_cubic-bezier(0.16,1,0.3,1)_forwards]" style="animation-delay: ${delay}ms;">${char}</span>`;
           })
           .join('');
         return `<span class="inline-block whitespace-nowrap">${letters}</span>`;
@@ -129,7 +132,7 @@ export default function Hero({ content, theme, isLoggedIn, onStartProject }: Her
           {/* Headline featuring morphing letters */}
           <h1 
             ref={headlineRef} 
-            className="text-4xl sm:text-5xl lg:text-7xl font-aloevera font-semibold tracking-wide leading-none mb-6 min-h-[140px] md:min-h-auto text-white mt-4"
+            className="text-6xl sm:text-8xl lg:text-9xl font-aloevera font-semibold tracking-wide leading-none mb-6 min-h-[140px] md:min-h-auto text-white mt-4"
           >
             {content.headline}
           </h1>
