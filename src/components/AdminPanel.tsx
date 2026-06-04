@@ -248,12 +248,33 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
           </p>
         </div>
         
-        <button 
-          onClick={handleReset}
-          className="text-xs font-mono font-bold px-4 py-3 border border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500/15 rounded-full transition-colors cursor-pointer"
-        >
-          RESET TO DEFAULT
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <button 
+            disabled={isSyncing}
+            onClick={handleForceSync}
+            className={`text-xs font-mono font-bold px-6 py-3 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              isSyncing
+                ? 'bg-slate-800/80 border border-slate-700 text-slate-400 pointer-events-none'
+                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+            }`}
+          >
+            {isSyncing ? (
+              <>
+                <Icons.RefreshCw className="w-4 h-4 animate-spin text-blue-400" />
+                <span>SAVING...</span>
+              </>
+            ) : (
+              <span>SAVE CHANGES</span>
+            )}
+          </button>
+          
+          <button 
+            onClick={handleReset}
+            className="text-xs font-mono font-bold px-4 py-3 border border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500/15 rounded-full transition-colors cursor-pointer"
+          >
+            RESET TO DEFAULT
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-6 items-start">
