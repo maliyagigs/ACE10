@@ -191,6 +191,9 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
       });
       
       if (!response.ok) {
+        if (response.status === 405 || response.status === 404) {
+          throw new Error('Static host detected (like Vercel). Cannot save files directly from here. Please use the "Copy CMS Configuration" button instead.');
+        }
         const errData = await response.text();
         throw new Error(`HTTP ${response.status}: ${errData}`);
       }

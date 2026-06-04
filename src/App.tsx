@@ -82,9 +82,13 @@ export default function App() {
 
     // 2. Query the live AI Studio Workspace Server to read the database-level config
     fetch(`/api/get-content`)
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
+        const text = await res.text();
+        if (text.startsWith('<')) {
+          throw new Error('Static host HTML response');
+        }
+        return JSON.parse(text);
       })
       .then((liveContent) => {
         if (

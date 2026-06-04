@@ -108,6 +108,10 @@ export default function Services({ services, theme, header }: ServicesProps) {
     'md:col-span-6', // 6 - Wide feature at bottom
   ];
 
+  if (!services || services.length === 0) {
+    return <section ref={sectionRef as any} style={{ display: 'none' }} />;
+  }
+
   const subTitle = header?.subTitle || "Service Suite";
   const title = header?.title || "Engineering\nDigital Excellence.";
   const description = header?.description || "We deploy precision frameworks to scale your infrastructure, optimize conversion lattices, and define market-leading interfaces.";
