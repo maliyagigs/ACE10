@@ -6,9 +6,10 @@ import { AppContent } from '../types';
 interface TestimonialsProps {
   testimonials: AppContent['testimonials'];
   theme: AppContent['theme'];
+  header?: AppContent['testimonialsHeader'];
 }
 
-export default function Testimonials({ testimonials, theme }: TestimonialsProps) {
+export default function Testimonials({ testimonials, theme, header }: TestimonialsProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -21,6 +22,9 @@ export default function Testimonials({ testimonials, theme }: TestimonialsProps)
   if (!testimonials || testimonials.length === 0) {
     return null;
   }
+
+  const title = header?.title || "Client Success Testimonials";
+  const description = header?.description || "Leading brands grow because we build systems that generate immediate value and sustained authority.";
 
   return (
     <motion.section 
@@ -39,10 +43,10 @@ export default function Testimonials({ testimonials, theme }: TestimonialsProps)
         {/* Header Block */}
         <div className="text-center max-w-2xl mx-auto mb-20">
           <h2 className="text-3xl md:text-5xl font-glass text-white tracking-wider leading-tight uppercase">
-            Client Success Testimonials
+            {title}
           </h2>
           <p className="text-slate-400 text-lg mt-4 leading-relaxed">
-            Leading brands grow because we build systems that generate immediate value and sustained authority.
+            {description}
           </p>
         </div>
 

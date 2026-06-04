@@ -17,6 +17,8 @@ import ContactForm from './components/ContactForm';
 import Footer from './components/Footer';
 import GoogleAuth from './components/GoogleAuth';
 import LoadingScreen from './components/LoadingScreen';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
 
 import * as Icons from 'lucide-react';
 
@@ -52,7 +54,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'home' | 'auth'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'auth' | 'privacy' | 'terms'>('home');
   const [isSiteLoaded, setIsSiteLoaded] = useState(false);
 
   // Sync Google/Email Authorized User session on load using isolated StorageService
@@ -180,26 +182,28 @@ export default function App() {
           />
 
           {/* CMS / Design Mode Toggle Button */}
-          <button 
-            onClick={() => setIsAdmin(!isAdmin)}
-            className={`flex items-center gap-2 text-xs font-mono font-bold px-4 py-2.5 rounded-full transition-all duration-300 relative overflow-hidden cursor-pointer border ${
-              isAdmin 
-                ? 'bg-blue-600 text-white border-transparent shadow-lg shadow-blue-500/20' 
-                : 'border-slate-800 bg-slate-900/50 hover:bg-slate-950 text-slate-350 hover:text-white'
-            }`}
-          >
-            {isAdmin ? (
-              <>
-                <Icons.X className="w-4 h-4" />
-                <span>CLOSE CMS PANEL</span>
-              </>
-            ) : (
-              <>
-                <Icons.Sliders className="w-4 h-4 text-blue-450" />
-                <span>ACE10 DESIGN CMS PANEL</span>
-              </>
-            )}
-          </button>
+          {user?.email === 'maliyagigs@gmail.com' && (
+            <button 
+              onClick={() => setIsAdmin(!isAdmin)}
+              className={`flex items-center gap-2 text-xs font-mono font-bold px-4 py-2.5 rounded-full transition-all duration-300 relative overflow-hidden cursor-pointer border ${
+                isAdmin 
+                  ? 'bg-blue-600 text-white border-transparent shadow-lg shadow-blue-500/20' 
+                  : 'border-slate-800 bg-slate-900/50 hover:bg-slate-950 text-slate-350 hover:text-white'
+              }`}
+            >
+              {isAdmin ? (
+                <>
+                  <Icons.X className="w-4 h-4" />
+                  <span>CLOSE CMS PANEL</span>
+                </>
+              ) : (
+                <>
+                  <Icons.Sliders className="w-4 h-4 text-blue-450" />
+                  <span>ACE10 DESIGN CMS PANEL</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </nav>
 
@@ -213,6 +217,14 @@ export default function App() {
               onBackToHome={() => setCurrentView('home')} 
             />
           </Suspense>
+        </div>
+      ) : currentView === 'privacy' ? (
+        <div className="pt-28 pb-12 px-6">
+          <PrivacyPolicy onBack={() => setCurrentView('home')} theme={content.theme} />
+        </div>
+      ) : currentView === 'terms' ? (
+        <div className="pt-28 pb-12 px-6">
+          <TermsOfService onBack={() => setCurrentView('home')} theme={content.theme} />
         </div>
       ) : (
         <div className="relative flex flex-col xl:flex-row">
@@ -238,25 +250,25 @@ export default function App() {
               <Stats stats={content.stats} theme={content.theme} />
 
               {/* Handcrafted Services layout with organic vector shapes rendering behind cards */}
-              <Services services={content.services} theme={content.theme} />
+              <Services services={content.services} theme={content.theme} header={content.servicesHeader} />
 
               {/* Segment showing custom vertical project showcase mockups */}
-              <Portfolio portfolio={content.portfolio} theme={content.theme} />
+              <Portfolio portfolio={content.portfolio} theme={content.theme} header={content.portfolioHeader} />
 
               {/* Elegant benefits/features display */}
-              <WhyChooseUs theme={content.theme} siteName={content.siteName} />
+              <WhyChooseUs theme={content.theme} siteName={content.siteName} whyChooseUs={content.whyChooseUs} />
 
               {/* Testimonial endorse panel */}
-              <Testimonials testimonials={content.testimonials} theme={content.theme} />
+              <Testimonials testimonials={content.testimonials} theme={content.theme} header={content.testimonialsHeader} />
 
               {/* Served Flags badge list */}
-              <ServedCountries countries={content.countries} theme={content.theme} />
+              <ServedCountries countries={content.countries} theme={content.theme} header={content.countriesHeader} />
 
               {/* Floating inputs contact quote selector */}
-              <ContactForm theme={content.theme} />
+              <ContactForm theme={content.theme} header={content.contactHeader} />
 
               {/* Detailed scalable footer list */}
-              <Footer footer={content.footer} theme={content.theme} siteName={content.siteName} />
+              <Footer footer={content.footer} theme={content.theme} siteName={content.siteName} setCurrentView={setCurrentView} />
             </div>
           </main>
 

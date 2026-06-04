@@ -436,6 +436,52 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
                 <span>Services Management Console</span>
               </h3>
 
+              {/* Services Section Header Controls */}
+              <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider">Services Section Intro Copy</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Section Subheading Accent</label>
+                    <input 
+                      type="text"
+                      value={content.servicesHeader?.subTitle || "Service Suite"}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.servicesHeader) c.servicesHeader = { subTitle: '', title: '', description: '' };
+                        c.servicesHeader.subTitle = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850"
+                      placeholder="Service Suite"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Section Title Heading (supports \n newline breaks)</label>
+                    <input 
+                      type="text"
+                      value={content.servicesHeader?.title || "Engineering\nDigital Excellence."}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.servicesHeader) c.servicesHeader = { subTitle: '', title: '', description: '' };
+                        c.servicesHeader.title = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850"
+                      placeholder="Engineering\nDigital Excellence."
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Intro Description Paragraph</label>
+                    <textarea 
+                      rows={2}
+                      value={content.servicesHeader?.description || "We deploy precision frameworks to scale your infrastructure, optimize conversion lattices, and define market-leading interfaces."}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.servicesHeader) c.servicesHeader = { subTitle: '', title: '', description: '' };
+                        c.servicesHeader.description = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850 resize-none"
+                      placeholder="Intro details..."
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Add New Service Form */}
               <div className="p-6 bg-slate-900/40 border border-slate-800 rounded-2xl space-y-4">
                 <h4 className="text-sm font-bold text-white uppercase tracking-wider">Deploy New Service</h4>
@@ -556,6 +602,39 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
                 <Icons.Code className="w-5 h-5 text-blue-400" />
                 <span>Portfolio & Slideshow Manager</span>
               </h3>
+
+              {/* Portfolio Section Header Controls */}
+              <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider">Portfolio Intro Copy</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Portfolio Main Heading</label>
+                    <input 
+                      type="text"
+                      value={content.portfolioHeader?.title || "Featured Portfolio"}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.portfolioHeader) c.portfolioHeader = { title: '', description: '' };
+                        c.portfolioHeader.title = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850"
+                      placeholder="Featured Portfolio"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Portfolio Description Subtitle</label>
+                    <input 
+                      type="text"
+                      value={content.portfolioHeader?.description || "Spin through our latest designs. Drag left or right, use your scroll wheel inside the area, or use the controls below to discover our work in an immersive 3D cylinder."}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.portfolioHeader) c.portfolioHeader = { title: '', description: '' };
+                        c.portfolioHeader.description = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850"
+                      placeholder="Portfolio details..."
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Add New Project Card */}
               <div className="p-6 bg-slate-900/40 border border-slate-800 rounded-2xl space-y-4">
@@ -718,6 +797,39 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
                 <Icons.MessageSquare className="w-5 h-5 text-blue-400" />
                 <span>Client Endorsements & Reviews CMS</span>
               </h3>
+
+              {/* Testimonials Section Header Controls */}
+              <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider">Testimonials Intro Copy</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Testimonials Section Headline</label>
+                    <input 
+                      type="text"
+                      value={content.testimonialsHeader?.title || "Client Success Testimonials"}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.testimonialsHeader) c.testimonialsHeader = { title: '', description: '' };
+                        c.testimonialsHeader.title = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850"
+                      placeholder="Client Success Testimonials"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Testimonials Subsection Subtitle</label>
+                    <input 
+                      type="text"
+                      value={content.testimonialsHeader?.description || "Leading brands grow because we build systems that generate immediate value and sustained authority."}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.testimonialsHeader) c.testimonialsHeader = { title: '', description: '' };
+                        c.testimonialsHeader.description = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850"
+                      placeholder="Details..."
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Add New Testimonial Form */}
               <div className="p-6 bg-slate-900/40 border border-slate-800 rounded-2xl space-y-4">
@@ -916,6 +1028,52 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
                 <span>Served Global Footprint</span>
               </h3>
 
+              {/* Countries Section Header Controls */}
+              <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider">Served Countries Intro Copy</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Section Subheading</label>
+                    <input 
+                      type="text"
+                      value={content.countriesHeader?.subTitle || "GLOBAL FOOTPRINT"}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.countriesHeader) c.countriesHeader = { subTitle: '', title: '', description: '' };
+                        c.countriesHeader.subTitle = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850"
+                      placeholder="GLOBAL FOOTPRINT"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Section Title</label>
+                    <input 
+                      type="text"
+                      value={content.countriesHeader?.title || "Served Countries & Offices"}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.countriesHeader) c.countriesHeader = { subTitle: '', title: '', description: '' };
+                        c.countriesHeader.title = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850"
+                      placeholder="Served Countries & Offices"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Section Paragraph Description</label>
+                    <textarea 
+                      rows={2}
+                      value={content.countriesHeader?.description || "We operate fully remote digital sprints connecting state-of-the-art websites to elite scale-ups across global centers."}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.countriesHeader) c.countriesHeader = { subTitle: '', title: '', description: '' };
+                        c.countriesHeader.description = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-950 text-white text-xs border border-slate-850 resize-none"
+                      placeholder="Description details..."
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Add New Country */}
               <div className="p-5 bg-slate-900/40 border border-slate-800 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                 <div>
@@ -1094,6 +1252,175 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* editable contact form title */}
+              <div className="border-t border-slate-900 pt-6 space-y-4">
+                <h4 className="text-sm font-bold text-slate-350">Contact Quote Form Copy Settings</h4>
+                <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Headline Quote Form</label>
+                    <input 
+                      type="text"
+                      value={content.contactHeader?.title || "Inquire a Digital Quote"}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.contactHeader) c.contactHeader = { title: '', description: '', submitSuccessTitle: '', submitSuccessDescription: '' };
+                        c.contactHeader.title = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Sub-heading Description Copy</label>
+                    <input 
+                      type="text"
+                      value={content.contactHeader?.description || "Brief us regarding your system specs, custom pages, or scale aspirations. Our technical lead responds within one rapid business sprint cycle."}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.contactHeader) c.contactHeader = { title: '', description: '', submitSuccessTitle: '', submitSuccessDescription: '' };
+                        c.contactHeader.description = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Success Alert Header</label>
+                    <input 
+                      type="text"
+                      value={content.contactHeader?.submitSuccessTitle || "System Logs: Submission Received"}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.contactHeader) c.contactHeader = { title: '', description: '', submitSuccessTitle: '', submitSuccessDescription: '' };
+                        c.contactHeader.submitSuccessTitle = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Success Alert Body Content</label>
+                    <input 
+                      type="text"
+                      value={content.contactHeader?.submitSuccessDescription || "Our servers successfully logged your digital profile. A representative of ACE10 will contact you immediately."}
+                      onChange={(e) => updateContent(c => { 
+                        if (!c.contactHeader) c.contactHeader = { title: '', description: '', submitSuccessTitle: '', submitSuccessDescription: '' };
+                        c.contactHeader.submitSuccessDescription = e.target.value; 
+                      })}
+                      className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* editable why choose us benefits options */}
+              <div className="border-t border-slate-900 pt-6 space-y-4">
+                <h4 className="text-sm font-bold text-slate-350">Why Choose Us Benefits Options</h4>
+                <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-xl space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1">Typewriter Headline Prefix (appends site title dynamically)</label>
+                      <input 
+                        type="text"
+                        value={content.whyChooseUs?.headline || "Why Hundreds of Leaders Trust"}
+                        onChange={(e) => updateContent(c => { 
+                          if (!c.whyChooseUs) c.whyChooseUs = { headline: '', description: '', benefits: [] };
+                          c.whyChooseUs.headline = e.target.value; 
+                        })}
+                        className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono text-slate-400 mb-1">Description Paragraph Copy</label>
+                      <input 
+                        type="text"
+                        value={content.whyChooseUs?.description || "We operate at the intersection of technological logic and aesthetic brilliance. No mock layout simulations, only state-of-the-art results tailored to your market."}
+                        onChange={(e) => updateContent(c => { 
+                          if (!c.whyChooseUs) c.whyChooseUs = { headline: '', description: '', benefits: [] };
+                          c.whyChooseUs.description = e.target.value; 
+                        })}
+                        className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <span className="block text-xs font-mono text-slate-500 uppercase font-bold">List of Benefits</span>
+                    {(content.whyChooseUs?.benefits || []).map((b, bIdx) => (
+                      <div key={b.id || bIdx} className="p-3 bg-slate-950/80 border border-slate-900 rounded-xl grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-mono text-slate-500 mb-1">Benefit Headline Title</label>
+                          <input 
+                            type="text"
+                            value={b.title}
+                            onChange={(e) => updateContent(c => { 
+                              if (c.whyChooseUs?.benefits[bIdx]) {
+                                c.whyChooseUs.benefits[bIdx].title = e.target.value;
+                              }
+                            })}
+                            className="w-full px-2 py-1 bg-slate-900 rounded text-xs text-white focus:outline-none border border-slate-800"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-mono text-slate-500 mb-1">Lucide Icon (e.g. ShieldCheck, Gauge, Smartphone, Compass)</label>
+                          <input 
+                            type="text"
+                            value={b.icon}
+                            onChange={(e) => updateContent(c => { 
+                              if (c.whyChooseUs?.benefits[bIdx]) {
+                                c.whyChooseUs.benefits[bIdx].icon = e.target.value;
+                              }
+                            })}
+                            className="w-full px-2 py-1 bg-slate-900 rounded text-xs text-white focus:outline-none border border-slate-800"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-mono text-slate-500 mb-1">Benefit Description Detailed Copy</label>
+                          <textarea 
+                            rows={1}
+                            value={b.description}
+                            onChange={(e) => updateContent(c => { 
+                              if (c.whyChooseUs?.benefits[bIdx]) {
+                                c.whyChooseUs.benefits[bIdx].description = e.target.value;
+                              }
+                            })}
+                            className="w-full px-2 py-1 bg-slate-900 rounded text-xs text-white focus:outline-none border border-slate-800 resize-none"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* footer contactTitle and legal labels settings */}
+              <div className="border-t border-slate-900 pt-6 space-y-4">
+                <h4 className="text-sm font-bold text-slate-350">Footer Column Titles & Secondary Link Labels</h4>
+                <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-xl grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Address Column Header Label</label>
+                    <input 
+                      type="text"
+                      value={content.footer.contactsTitle || "HQ Studio Contacts"}
+                      onChange={(e) => updateContent(c => { c.footer.contactsTitle = e.target.value; })}
+                      className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Legal link label 1 (Cookies)</label>
+                    <input 
+                      type="text"
+                      value={content.footer.legalCookiesLabel || "Legal Cookies"}
+                      onChange={(e) => updateContent(c => { c.footer.legalCookiesLabel = e.target.value; })}
+                      className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono text-slate-400 mb-1">Legal link label 2 (Security Audit)</label>
+                    <input 
+                      type="text"
+                      value={content.footer.securityAuditLabel || "Security Audit"}
+                      onChange={(e) => updateContent(c => { c.footer.securityAuditLabel = e.target.value; })}
+                      className="w-full px-3 py-2 bg-slate-950 rounded-lg text-xs text-white border border-slate-850 focus:outline-none"
+                    />
+                  </div>
+                </div>
               </div>
 
             </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { animate, stagger } from 'animejs';
 import { motion } from 'motion/react';
 import { AppContent } from '../types';
@@ -11,36 +11,54 @@ interface HeroProps {
 }
 
 export default function Hero({ content, theme, isLoggedIn, onStartProject }: HeroProps) {
-  const headlineRef = useRef<HTMLHeadingElement>(null);
   const heroImageContainerRef = useRef<HTMLDivElement>(null);
   const particlesCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Text Letter Morphing on loading
-  useEffect(() => {
-    if (!headlineRef.current) return;
-
-    // Split text into words, then words into characters to prevent mid-word breaks
-    // Fully GPU Accelerated with CSS translate3d layers to avoid main-thread script lag
-    const text = content.headline || "We Build Websites That Grow Your Business.";
-    let globalIndex = 0;
-    headlineRef.current.innerHTML = text
-      .split(' ')
-      .map((word) => {
-        const isBusiness = word.toLowerCase().replace(/[^a-z]/g, '') === 'business';
-        const letters = word
-          .split('')
-          .map((char) => {
-            const delay = globalIndex * 12;
-            globalIndex++;
-            const isGreen = (isBusiness && char !== '.') || char === '.';
-            const textColor = isGreen ? 'text-emerald-400' : 'text-white';
-            return `<span class="letter inline-block font-aloevera tracking-wide font-semibold opacity-0 ${textColor} animate-[letter-entrance_650ms_cubic-bezier(0.16,1,0.3,1)_forwards]" style="animation-delay: ${delay}ms;">${char}</span>`;
-          })
-          .join('');
-        return `<span class="inline-block whitespace-nowrap">${letters}</span>`;
-      })
-      .join('<span class="inline-block">&nbsp;</span>');
+  const text = useMemo(() => {
+    const raw = content.headline || "We Build Websites That Grow Your Business";
+    return raw.trim().endsWith('.') ? raw.trim() : `${raw.trim()}.`;
   }, [content.headline]);
+  
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  // Typewriter timing logic
+  useEffect(() => {
+    setVisibleCount(0);
+    const delay = 45; // ms per char
+    let current = 0;
+    
+    const timer = setInterval(() => {
+      current++;
+      if (current <= text.length) {
+        setVisibleCount(current);
+      } else {
+        clearInterval(timer);
+      }
+    }, delay);
+    
+    return () => clearInterval(timer);
+  }, [text]);
+
+  const wordObjects = useMemo(() => {
+    const words = text.split(' ');
+    let currentIndex = 0;
+    return words.map((word, wordIdx) => {
+      const chars = word.split('').map(char => {
+        currentIndex++;
+        return {
+          char,
+          globalIndex: currentIndex
+        };
+      });
+      if (wordIdx < words.length - 1) {
+        currentIndex++; // account for space between words
+      }
+      return {
+        word,
+        chars
+      };
+    });
+  }, [text]);
 
   // Floating Hero image background particles emitter
   useEffect(() => {
@@ -94,13 +112,20 @@ export default function Hero({ content, theme, isLoggedIn, onStartProject }: Her
         p.y += p.speedY;
         p.life++;
 
+        const alpha = 1 - (p.life / p.maxLife);
+
+        // Render fast halo glow (substitutes slow CPU shadowBlur)
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 2.8, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = alpha * 0.22;
+        ctx.fill();
+
+        // Render solid particle core
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
-        // Fade out
-        ctx.globalAlpha = 1 - (p.life / p.maxLife);
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = p.color;
+        ctx.globalAlpha = alpha;
         ctx.fill();
 
         if (p.life >= p.maxLife) {
@@ -121,6 +146,17 @@ export default function Hero({ content, theme, isLoggedIn, onStartProject }: Her
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center pt-28 pb-20 px-6 md:px-12 text-center overflow-hidden">
+      <style>{`
+        @keyframes typewriterBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        .typewriter-cursor {
+          animation: typewriterBlink 0.9s step-end infinite;
+          will-change: opacity;
+        }
+      `}</style>
+      
       {/* Abstract Glowing Grid Mesh behind Hero */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f29370a_1px,transparent_1px),linear-gradient(to_bottom,#1f29370a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none -z-10" />
 
@@ -129,12 +165,56 @@ export default function Hero({ content, theme, isLoggedIn, onStartProject }: Her
         {/* Centered Content: Headline, Subheadline and CTAs */}
         <div className="text-center flex flex-col items-center z-10">
 
-          {/* Headline featuring morphing letters */}
+          {/* Headline featuring typewriter layout-safe animation */}
           <h1 
-            ref={headlineRef} 
-            className="text-6xl sm:text-8xl lg:text-9xl font-aloevera font-semibold tracking-wide leading-none mb-6 min-h-[140px] md:min-h-auto text-white mt-4"
+            className="text-6xl sm:text-8xl lg:text-9xl font-aloevera font-semibold tracking-wide leading-none mb-6 min-h-[140px] md:min-h-auto text-white mt-4 relative text-center"
           >
-            {content.headline}
+            {visibleCount === 0 && (
+              <span className="inline-block w-[3px] h-[0.9em] bg-emerald-400 ml-1 translate-y-[0.1em] typewriter-cursor" />
+            )}
+            {wordObjects.map((wordObj, wordIdx) => {
+              const isBusiness = wordObj.word.toLowerCase().replace(/[^a-z]/g, '') === 'business';
+              
+              return (
+                <span key={wordIdx} className="inline-block whitespace-nowrap">
+                  {wordObj.chars.map((charObj) => {
+                    const isVisible = charObj.globalIndex <= visibleCount;
+                    const isGreen = isBusiness || charObj.char === '.';
+                    const textColor = isGreen ? 'text-emerald-400' : 'text-white';
+                    
+                    return (
+                      <span 
+                        key={charObj.globalIndex} 
+                        className={`inline-block transition-opacity duration-100 ${isVisible ? 'opacity-100' : 'opacity-0'} ${textColor}`}
+                        style={{
+                          backfaceVisibility: 'hidden',
+                          transform: 'translate3d(0,0,0)'
+                        }}
+                      >
+                        {charObj.char}
+                        {charObj.globalIndex === visibleCount && visibleCount < text.length && (
+                          <span className="inline-block w-[3px] h-[0.9em] bg-emerald-400 ml-0.5 translate-y-[0.1em] typewriter-cursor" />
+                        )}
+                      </span>
+                    );
+                  })}
+                  {/* Space between words */}
+                  {wordIdx < wordObjects.length - 1 && (
+                    <span 
+                      className={`inline-block ${visibleCount >= wordObj.chars[wordObj.chars.length - 1].globalIndex + 1 ? 'opacity-100' : 'opacity-0'}`}
+                    >
+                      &nbsp;
+                      {visibleCount === wordObj.chars[wordObj.chars.length - 1].globalIndex + 1 && (
+                        <span className="inline-block w-[3px] h-[0.9em] bg-emerald-400 -ml-[0.2em] translate-y-[0.1em] typewriter-cursor" />
+                      )}
+                    </span>
+                  )}
+                </span>
+              );
+            })}
+            {visibleCount >= text.length && (
+              <span className="inline-block w-[3px] h-[0.9em] bg-emerald-400 ml-1 translate-y-[0.1em] typewriter-cursor" />
+            )}
           </h1>
 
           {/* Subheadline description */}

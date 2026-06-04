@@ -5,9 +5,10 @@ import { AppContent } from '../types';
 
 interface ContactFormProps {
   theme: AppContent['theme'];
+  header?: AppContent['contactHeader'];
 }
 
-export default function ContactForm({ theme }: ContactFormProps) {
+export default function ContactForm({ theme, header }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -39,6 +40,11 @@ export default function ContactForm({ theme }: ContactFormProps) {
     }, 4000);
   };
 
+  const title = header?.title || "Inquire a Digital Quote";
+  const description = header?.description || "Brief us regarding your system specs, custom pages, or scale aspirations. Our technical lead responds within one rapid business sprint cycle.";
+  const submitSuccessTitle = header?.submitSuccessTitle || "System Logs: Submission Received";
+  const submitSuccessDescription = header?.submitSuccessDescription || "Our servers successfully logged your digital profile. A representative of ACE10 will contact you immediately.";
+
   return (
     <section id="contact" className="py-28 px-6 md:px-12 bg-slate-950/40 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-500/5 filter blur-[150px] pointer-events-none" />
@@ -48,10 +54,10 @@ export default function ContactForm({ theme }: ContactFormProps) {
         {/* Title */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-glass text-white tracking-wider mt-3 uppercase">
-            Inquire a Digital Quote
+            {title}
           </h2>
           <p className="text-slate-400 mt-4 leading-relaxed max-w-2xl mx-auto">
-            Brief us regarding your system specs, custom pages, or scale aspirations. Our technical lead responds within one rapid business sprint cycle.
+            {description}
           </p>
         </div>
 
@@ -64,9 +70,9 @@ export default function ContactForm({ theme }: ContactFormProps) {
             <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
               <Icons.CheckCircle className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-bold text-white">System Logs: Submission Received</h3>
+            <h3 className="text-2xl font-bold text-white">{submitSuccessTitle}</h3>
             <p className="text-slate-400 max-w-md mx-auto">
-              Our servers successfully logged your digital profile. A representative of ACE10 will contact you immediately.
+              {submitSuccessDescription}
             </p>
           </motion.div>
         ) : (

@@ -6,9 +6,10 @@ interface FooterProps {
   footer: AppContent['footer'];
   theme: AppContent['theme'];
   siteName: string;
+  setCurrentView?: (view: 'home' | 'auth' | 'privacy' | 'terms') => void;
 }
 
-export default function Footer({ footer, theme, siteName }: FooterProps) {
+export default function Footer({ footer, theme, siteName, setCurrentView }: FooterProps) {
   
   const scrollToTop = () => {
     if (typeof (window as any).__triggerInertiaScroll === 'function') {
@@ -76,12 +77,28 @@ export default function Footer({ footer, theme, siteName }: FooterProps) {
                 <ul className="space-y-2.5">
                   {section.links.map((link) => (
                     <li key={link.id}>
-                      <a 
-                        href={link.url} 
-                        className="text-sm text-slate-400 hover:text-white transition-colors"
-                      >
-                        {link.label}
-                      </a>
+                      {link.label === 'Privacy Policy' ? (
+                        <button
+                          onClick={() => setCurrentView && setCurrentView('privacy')}
+                          className="text-sm text-slate-400 hover:text-white transition-colors text-left"
+                        >
+                          {link.label}
+                        </button>
+                      ) : link.label === 'Terms of Service' ? (
+                        <button
+                          onClick={() => setCurrentView && setCurrentView('terms')}
+                          className="text-sm text-slate-400 hover:text-white transition-colors text-left"
+                        >
+                          {link.label}
+                        </button>
+                      ) : (
+                        <a 
+                          href={link.url} 
+                          className="text-sm text-slate-400 hover:text-white transition-colors"
+                        >
+                          {link.label}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -92,7 +109,7 @@ export default function Footer({ footer, theme, siteName }: FooterProps) {
           {/* Contacts information block */}
           <div className="lg:col-span-3 text-left space-y-6">
             <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500 font-bold">
-              HQ SStudio Contacts
+              {footer.contactsTitle || "HQ Studio Contacts"}
             </h3>
             <ul className="space-y-3.5 text-sm">
               <li className="flex items-start gap-2.5 text-slate-400">
@@ -124,8 +141,8 @@ export default function Footer({ footer, theme, siteName }: FooterProps) {
 
           <div className="flex items-center gap-6">
             <ul className="flex items-center gap-6 text-xs text-slate-500">
-              <li><a href="#" className="hover:text-white transition-colors">Legal Cookies</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Security Audit</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">{footer.legalCookiesLabel || "Legal Cookies"}</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">{footer.securityAuditLabel || "Security Audit"}</a></li>
             </ul>
 
             {/* Back to top with Smooth Scroll support requested by user */}

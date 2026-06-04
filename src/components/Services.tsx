@@ -6,6 +6,7 @@ import React, { useRef } from 'react';
 interface ServicesProps {
   services: AppContent['services'];
   theme: AppContent['theme'];
+  header?: AppContent['servicesHeader'];
 }
 
 interface ServiceCardProps {
@@ -43,7 +44,7 @@ function ServiceCard({ service, theme, index, className }: ServiceCardProps) {
         delay: index * 0.1,
         ease: [0.22, 1, 0.36, 1]
       }}
-      className={`group relative p-8 bg-white/[0.02] backdrop-blur-3xl border border-white/[0.04] hover:border-white/[0.1] rounded-[2rem] transition-colors duration-500 overflow-hidden flex flex-col justify-between min-h-[320px] ${className}`}
+      className={`group relative p-8 bg-slate-950/80 border border-slate-900 hover:border-slate-850 rounded-[2rem] transition-all duration-500 overflow-hidden flex flex-col justify-between min-h-[320px] ${className}`}
     >
       {/* Spotlight Effect */}
       <motion.div
@@ -81,7 +82,7 @@ function ServiceCard({ service, theme, index, className }: ServiceCardProps) {
   );
 }
 
-export default function Services({ services, theme }: ServicesProps) {
+export default function Services({ services, theme, header }: ServicesProps) {
   const sectionRef = useRef<HTMLElement>(null);
   
   // Fey Scroll Animation Logic
@@ -106,6 +107,10 @@ export default function Services({ services, theme }: ServicesProps) {
     'md:col-span-2', // 5
     'md:col-span-6', // 6 - Wide feature at bottom
   ];
+
+  const subTitle = header?.subTitle || "Service Suite";
+  const title = header?.title || "Engineering\nDigital Excellence.";
+  const description = header?.description || "We deploy precision frameworks to scale your infrastructure, optimize conversion lattices, and define market-leading interfaces.";
 
   return (
     <section 
@@ -146,7 +151,7 @@ export default function Services({ services, theme }: ServicesProps) {
             className="flex items-center gap-3 mb-6"
           >
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-slate-500">Service Suite</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-slate-500">{subTitle}</span>
           </motion.div>
 
           <motion.h2 
@@ -155,8 +160,9 @@ export default function Services({ services, theme }: ServicesProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.1 }}
             className="text-5xl md:text-7xl font-bold text-white tracking-tighter leading-[0.9]"
+            style={{ whiteSpace: 'pre-line' }}
           >
-            Engineering<br />Digital Excellence.
+            {title}
           </motion.h2>
           
           <motion.p 
@@ -166,7 +172,7 @@ export default function Services({ services, theme }: ServicesProps) {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-slate-500 mt-10 text-xl md:text-2xl leading-relaxed max-w-2xl font-medium tracking-tight"
           >
-            We deploy precision frameworks to scale your infrastructure, optimize conversion lattices, and define market-leading interfaces.
+            {description}
           </motion.p>
         </div>
 

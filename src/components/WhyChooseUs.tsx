@@ -6,9 +6,14 @@ import { AppContent } from '../types';
 interface WhyChooseUsProps {
   theme: AppContent['theme'];
   siteName: string;
+  whyChooseUs?: AppContent['whyChooseUs'];
 }
 
-function SphereBackground() {
+interface SphereBackgroundProps {
+  active: boolean;
+}
+
+function SphereBackground({ active }: SphereBackgroundProps) {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center opacity-70 select-none z-0">
       <style>{`
@@ -23,7 +28,15 @@ function SphereBackground() {
           }
         }
         .titanium-path {
-          animation: titaniumOscillate 4.5s ease-in-out infinite alternate;
+          animation: ${active ? 'titaniumOscillate 4.5s ease-in-out infinite alternate' : 'none'};
+        }
+        @keyframes cursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        .cursor-blink {
+          animation: cursorBlink 0.9s step-end infinite;
+          will-change: opacity;
         }
       `}</style>
       <div className="relative w-[340px] h-[340px] sm:w-[500px] sm:h-[500px] md:w-[680px] md:h-[680px] select-none pointer-events-none transform -rotate-12 scale-110 sm:scale-100">
@@ -78,29 +91,55 @@ function SphereBackground() {
   );
 }
 
-export default function WhyChooseUs({ theme, siteName }: WhyChooseUsProps) {
-  const benefits = [
+export default function WhyChooseUs({ theme, siteName, whyChooseUs }: WhyChooseUsProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.02, rootMargin: '100px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const fallbackBenefits = [
     {
+      id: "b1",
       title: "Pristine Pixel Perfection",
       description: "We don't settle for templates. Every component is handcrafted from scratch to maintain structural superiority and high-conversion elegance.",
       icon: "ShieldAlert"
     },
     {
+      id: "b2",
       title: "Optimized Core Web Vitals",
       description: "Our engineered sites rank amongst the fastest. We optimize file load weights, image servers, and client caching structures.",
       icon: "Gauge"
     },
     {
+      id: "b3",
       title: "Adaptive Responsive Fluidity",
       description: "Every single page adjusts fluidly from wide displays down to ultra-compact mobile screens without a single layout error.",
       icon: "Smartphone"
     },
     {
+      id: "b4",
       title: "User-Centered Behavior Labs",
       description: "Every CTA, card position, and color emphasis undergoes strict mapping to maximize client lead capture rates.",
       icon: "Compass"
     }
   ];
+
+  const benefits = whyChooseUs?.benefits || fallbackBenefits;
+  const headline = (whyChooseUs?.headline || "Why Hundreds of Leaders Trust") + " " + siteName;
+  const description = whyChooseUs?.description || "We operate at the intersection of technological logic and aesthetic brilliance. No mock layout simulations, only state-of-the-art results tailored to your market.";
 
   const renderIcon = (name: string) => {
     const LucideIcon = (Icons as any)[name] || Icons.CheckCircle;
@@ -108,8 +147,8 @@ export default function WhyChooseUs({ theme, siteName }: WhyChooseUsProps) {
   };
 
   return (
-    <section className="py-28 px-6 md:px-12 bg-slate-950/40 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative">
-      <SphereBackground />
+    <section ref={sectionRef} className="py-28 px-6 md:px-12 bg-slate-950/40 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative">
+      <SphereBackground active={isInView} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-blue-500/5 filter blur-[140px] pointer-events-none z-0" />
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
@@ -117,7 +156,7 @@ export default function WhyChooseUs({ theme, siteName }: WhyChooseUsProps) {
         {/* Left column */}
         <div className="lg:col-span-5 space-y-6">
           <h2 className="text-3xl md:text-5xl font-glass text-white tracking-wider leading-tight uppercase relative inline-block">
-            {`Why Hundreds of Leaders Trust ${siteName}`.split('').map((char, i) => (
+            {headline.split('').map((char, i) => (
               <motion.span
                 key={i}
                 initial={{ opacity: 0 }}
@@ -132,14 +171,12 @@ export default function WhyChooseUs({ theme, siteName }: WhyChooseUsProps) {
                 {char}
               </motion.span>
             ))}
-            <motion.span
-              animate={{ opacity: [0, 1, 0] }}
-              transition={{ repeat: Infinity, duration: 0.8, ease: "steps(2)" }}
-              className="inline-block w-[3px] h-[0.8em] bg-blue-500 ml-1 align-middle"
+            <span
+              className="inline-block w-[3px] h-[0.8em] bg-blue-500 ml-1 align-middle cursor-blink"
             />
           </h2>
           <p className="text-slate-400 text-lg leading-relaxed pt-2">
-            We operate at the intersection of technological logic and aesthetic brilliance. No mock layout simulations, only state-of-the-art results tailored to your market.
+            {description}
           </p>
           <div className="pt-4">
             <a 
@@ -156,7 +193,7 @@ export default function WhyChooseUs({ theme, siteName }: WhyChooseUsProps) {
         <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
           {benefits.map((b, idx) => (
             <motion.div
-              key={idx}
+              key={b.id || idx}
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}

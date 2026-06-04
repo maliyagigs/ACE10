@@ -31,18 +31,17 @@ export const initialContent: AppContent = {
       }
     ]
   },
+  "servicesHeader": {
+    "subTitle": "Service Suite",
+    "title": "Engineering\nDigital Excellence.",
+    "description": "We deploy precision frameworks to scale your infrastructure, optimize conversion lattices, and define market-leading interfaces."
+  },
   "services": [
     {
       "id": "1",
       "title": "Custom Website Design",
       "description": "Tailor-made, high-conversion vector designs matching your brand voice with meticulous layout perfection.",
       "icon": "Layout"
-    },
-    {
-      "id": "2",
-      "title": "E-commerce Development",
-      "description": "Next-generation WooCommerce and custom commerce systems with ultra-fast secure checkout structures.",
-      "icon": "ShoppingBag"
     },
     {
       "id": "3",
@@ -69,6 +68,40 @@ export const initialContent: AppContent = {
       "icon": "Activity"
     }
   ],
+  "whyChooseUs": {
+    "headline": "Why Hundreds of Leaders Trust",
+    "description": "We operate at the intersection of technological logic and aesthetic brilliance. No mock layout simulations, only state-of-the-art results tailored to your market.",
+    "benefits": [
+      {
+        "id": "b1",
+        "title": "Pristine Pixel Perfection",
+        "description": "We don't settle for templates. Every component is handcrafted from scratch to maintain structural superiority and high-conversion elegance.",
+        "icon": "ShieldAlert"
+      },
+      {
+        "id": "b2",
+        "title": "Optimized Core Web Vitals",
+        "description": "Our engineered sites rank amongst the fastest. We optimize file load weights, image servers, and client caching structures.",
+        "icon": "Gauge"
+      },
+      {
+        "id": "b3",
+        "title": "Adaptive Responsive Fluidity",
+        "description": "Every single page adjusts fluidly from wide displays down to ultra-compact mobile screens without a single layout error.",
+        "icon": "Smartphone"
+      },
+      {
+        "id": "b4",
+        "title": "User-Centered Behavior Labs",
+        "description": "Every CTA, card position, and color emphasis undergoes strict mapping to maximize client lead capture rates.",
+        "icon": "Compass"
+      }
+    ]
+  },
+  "portfolioHeader": {
+    "title": "Our Featured Portfolio Showcase",
+    "description": "Explore high-performance digital systems, custom interactive experiences, and result-oriented software designed to command attention."
+  },
   "portfolio": [
     {
       "id": "p1",
@@ -119,6 +152,10 @@ export const initialContent: AppContent = {
       "category": "Website Design"
     }
   ],
+  "testimonialsHeader": {
+    "title": "Client Success Testimonials",
+    "description": "Leading brands grow because we build systems that generate immediate value and sustained authority."
+  },
   "testimonials": [
     {
       "id": "t1",
@@ -212,6 +249,17 @@ export const initialContent: AppContent = {
       "name": "Germany"
     }
   ],
+  "countriesHeader": {
+    "subTitle": "GLOBAL FOOTPRINT",
+    "title": "Served Countries & Offices",
+    "description": "We operate fully remote digital sprints connecting state-of-the-art websites to elite scale-ups across global centers."
+  },
+  "contactHeader": {
+    "title": "Inquire a Digital Quote",
+    "description": "Brief us regarding your system specs, custom pages, or scale aspirations. Our technical lead responds within one rapid business sprint cycle.",
+    "submitSuccessTitle": "System Logs: Submission Received",
+    "submitSuccessDescription": "Our servers successfully logged your digital profile. A representative of ACE10 will contact you immediately."
+  },
   "footer": {
     "aboutText": "ACE10 crafts premier high-performance digital systems, custom interactive experiences, and result-oriented software designed to help businesses command global attention.",
     "address": "10 Innovation Boulevard, Tech District, Suite 500",
@@ -293,6 +341,9 @@ export const initialContent: AppContent = {
         "id": "soc4"
       }
     ],
-    "copyrightText": "© 2026 ACE10 Studio. All rights reserved. Crafting Digital Experiences That Stand Out."
+    "copyrightText": "© 2026 ACE10 Studio. All rights reserved. Crafting Digital Experiences That Stand Out.",
+    "contactsTitle": "HQ Studio Contacts",
+    "legalCookiesLabel": "Legal Cookies",
+    "securityAuditLabel": "Security Audit"
   }
 };

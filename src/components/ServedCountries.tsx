@@ -4,9 +4,14 @@ import { AppContent } from '../types';
 interface ServedCountriesProps {
   countries: AppContent['countries'];
   theme: AppContent['theme'];
+  header?: AppContent['countriesHeader'];
 }
 
-export default function ServedCountries({ countries, theme }: ServedCountriesProps) {
+export default function ServedCountries({ countries, theme, header }: ServedCountriesProps) {
+  const subTitle = header?.subTitle || "GLOBAL FOOTPRINT";
+  const title = header?.title || "Served Countries & Offices";
+  const description = header?.description || "We operate fully remote digital sprints connecting state-of-the-art websites to elite scale-ups across global centers.";
+
   return (
     <section className="py-24 px-6 md:px-12 bg-slate-950/40 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative">
       
@@ -16,10 +21,10 @@ export default function ServedCountries({ countries, theme }: ServedCountriesPro
       <div className="max-w-7xl mx-auto text-center relative z-10">
         
         <div className="max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-mono uppercase tracking-[0.25em] text-emerald-400 font-semibold">GLOBAL FOOTPRINT</span>
-          <h2 className="text-3xl md:text-5xl font-glass text-white mt-3 tracking-wider uppercase">Served Countries & Offices</h2>
+          <span className="text-xs font-mono uppercase tracking-[0.25em] text-emerald-400 font-semibold">{subTitle}</span>
+          <h2 className="text-3xl md:text-5xl font-glass text-white mt-3 tracking-wider uppercase">{title}</h2>
           <p className="text-slate-400 text-base mt-4">
-            We operate fully remote digital sprints connecting state-of-the-art websites to elite scale-ups across global centers.
+            {description}
           </p>
         </div>
 

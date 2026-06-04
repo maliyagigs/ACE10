@@ -5,9 +5,10 @@ import { AppContent } from '../types';
 interface PortfolioProps {
   portfolio: AppContent['portfolio'];
   theme: AppContent['theme'];
+  header?: AppContent['portfolioHeader'];
 }
 
-export default function Portfolio({ portfolio }: PortfolioProps) {
+export default function Portfolio({ portfolio, header }: PortfolioProps) {
   const [targetOffset, setTargetOffset] = useState(0);
   const [activeIdx, setActiveIdx] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -119,7 +120,22 @@ export default function Portfolio({ portfolio }: PortfolioProps) {
 
     const lerp = () => {
       const diff = targetOffsetRef.current - currentOffsetRef.current;
-      if (Math.abs(diff) < 0.0001) {
+      const dragging = isDraggingRef.current;
+
+      if (Math.abs(diff) < 0.001 && !dragging) {
+        currentOffsetRef.current = targetOffsetRef.current;
+        updateCardStyles(currentOffsetRef.current);
+
+        const rounded = Math.round(currentOffsetRef.current);
+        const computedActiveIdx = ((rounded % portfolio.length) + portfolio.length) % portfolio.length;
+
+        if (computedActiveIdx !== activeIdx) {
+          setActiveIdx(computedActiveIdx);
+        }
+        return; // Halt the requestAnimationFrame cycle when completely settled
+      }
+
+      if (dragging) {
         currentOffsetRef.current = targetOffsetRef.current;
       } else {
         currentOffsetRef.current += diff * 0.12;
@@ -137,9 +153,17 @@ export default function Portfolio({ portfolio }: PortfolioProps) {
       rId = requestAnimationFrame(lerp);
     };
 
-    rId = requestAnimationFrame(lerp);
-    return () => cancelAnimationFrame(rId);
-  }, [portfolio.length, radius, activeIdx]);
+    const initialDiff = targetOffsetRef.current - currentOffsetRef.current;
+    if (Math.abs(initialDiff) > 0.001 || isDraggingRef.current) {
+      rId = requestAnimationFrame(lerp);
+    } else {
+      updateCardStyles(currentOffsetRef.current);
+    }
+
+    return () => {
+      if (rId) cancelAnimationFrame(rId);
+    };
+  }, [portfolio.length, radius, activeIdx, targetOffset, isDragging]);
 
   // Non-passive wheel event interceptor to lock and spin
   useEffect(() => {
@@ -240,10 +264,10 @@ export default function Portfolio({ portfolio }: PortfolioProps) {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
           <div>
             <h2 id="portfolio-header-title" className="text-3xl md:text-5xl font-glass text-white tracking-wider mt-2 uppercase">
-              Featured Portfolio
+              {header?.title || "Featured Portfolio"}
             </h2>
             <p id="portfolio-header-subtitle" className="text-slate-400 mt-2 max-w-xl">
-              Spin through our latest designs. Drag left or right, use your scroll wheel inside the area, or use the controls below to discover our work in an immersive 3D cylinder.
+              {header?.description || "Spin through our latest designs. Drag left or right, use your scroll wheel inside the area, or use the controls below to discover our work in an immersive 3D cylinder."}
             </p>
           </div>
           

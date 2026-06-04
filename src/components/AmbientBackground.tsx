@@ -80,15 +80,15 @@ export default function AmbientBackground({ theme }: AmbientBackgroundProps) {
         ctx.fill();
       });
 
-      // Draw faint connections
+      // Draw faint connections (using squared distances to avoid expensive Math.sqrt calls)
       ctx.globalAlpha = 0.05;
       ctx.strokeStyle = theme.secondaryColor;
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 14400) { // 120 * 120 = 14400
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
@@ -131,19 +131,34 @@ export default function AmbientBackground({ theme }: AmbientBackgroundProps) {
       <div ref={sentinelRef} className="absolute top-0 left-0 w-full h-px pointer-events-none" />
 
       <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none bg-slate-950">
-        {/* Background Gradient Blurs */}
-        <div 
-          className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full filter blur-[150px] opacity-20 animate-pulse duration-[10000ms]"
-          style={{ backgroundColor: theme.primaryColor }}
-        />
-        <div 
-          className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] rounded-full filter blur-[150px] opacity-20 animate-pulse duration-[8000ms]"
-          style={{ backgroundColor: theme.secondaryColor }}
-        />
-        <div 
-          className="absolute top-2/3 left-1/3 w-[500px] h-[500px] rounded-full filter blur-[120px] opacity-15 animate-bounce duration-[15000ms]"
-          style={{ backgroundColor: theme.accentColor }}
-        />
+        <style>{`
+          @keyframes slowDriftBg {
+            0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+            50% { transform: translate3d(15px, -15px, 0) rotate(180deg) scale(1.04); }
+            100% { transform: translate3d(0, 0, 0) rotate(360deg) scale(1); }
+          }
+          .drift-bg-wrap {
+            animation: slowDriftBg 40s ease-in-out infinite;
+            will-change: transform;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+          }
+        `}</style>
+        {/* Background Gradient Blurs - Single composite layer drift */}
+        <div className="absolute inset-0 drift-bg-wrap">
+          <div 
+            className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full filter blur-[150px] opacity-20"
+            style={{ backgroundColor: theme.primaryColor, backfaceVisibility: 'hidden' }}
+          />
+          <div 
+            className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] rounded-full filter blur-[150px] opacity-20"
+            style={{ backgroundColor: theme.secondaryColor, backfaceVisibility: 'hidden' }}
+          />
+          <div 
+            className="absolute top-2/3 left-1/3 w-[500px] h-[500px] rounded-full filter blur-[120px] opacity-15"
+            style={{ backgroundColor: theme.accentColor, backfaceVisibility: 'hidden' }}
+          />
+        </div>
         
         {/* Dynamic Particle Canvas */}
         <canvas ref={canvasRef} className="absolute inset-0 block" />
