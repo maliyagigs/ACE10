@@ -49,9 +49,6 @@ export default function Footer({
             <h1 className="text-2xl font-black tracking-tight text-white">
               {siteName}
             </h1>
-            <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
-              {footer.aboutText}
-            </p>
 
             {/* Social media connections */}
             {footer.socials && footer.socials.length > 0 && (
@@ -127,6 +124,23 @@ export default function Footer({
                 </a>
               </li>
             </ul>
+          </div>
+        </div>
+
+        {/* Middle Info Section */}
+        <div className="py-12 border-b border-slate-900">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-8 md:gap-12 text-slate-400 text-sm leading-relaxed text-left">
+            <p className="flex-1">
+              {footer.aboutText}
+            </p>
+            <p className="flex-1">
+              <strong className="text-slate-300 block mb-2">App Functionality:</strong>
+              ACE10 is a digital agency platform offering custom web development, UI/UX design, and brand strategy solutions. We build scalable, high-performance web applications tailored to elevate your business presence.
+            </p>
+            <p className="flex-1">
+              <strong className="text-slate-300 block mb-2">Data Usage & Privacy:</strong>
+              We request and collect user data (such as name and email) solely to communicate regarding requested services, provide customer support, and improve user experience. We do not sell your data.
+            </p>
           </div>
         </div>
 
