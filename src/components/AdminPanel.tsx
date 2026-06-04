@@ -181,17 +181,16 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
     setSyncMessage('Writing CMS configs to workspace...');
     
     try {
-      const apiBase = window.location.hostname.includes('run.app') || window.location.hostname === 'localhost' || window.location.hostname.includes('3000')
-        ? ''
-        : 'https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app';
-
-      const response = await fetch(`${apiBase}/api/save-content`, {
+      const response = await fetch(`/api/save-content`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(content)
       });
       
-      if (!response.ok) throw new Error('HTTP ' + response.status);
+      if (!response.ok) {
+        const errData = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errData}`);
+      }
       
       setSyncMessage('Workspace configuration saved!');
       
@@ -202,7 +201,7 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
       }, 1000);
       
     } catch (err: any) {
-      console.error(err);
+      console.error("DEBUG CMS SYNC ERROR:", err);
       setSyncMessage('');
       setIsSyncing(false);
       alert('CMS Sync Failed: ' + (err.message || err));

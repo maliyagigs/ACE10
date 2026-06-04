@@ -81,14 +81,7 @@ export default function App() {
     setContent(syncContent);
 
     // 2. Query the live AI Studio Workspace Server to read the database-level config
-    const apiBase =
-      window.location.hostname.includes("run.app") ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname.includes("3000")
-        ? ""
-        : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
-
-    fetch(`${apiBase}/api/get-content`)
+    fetch(`/api/get-content`)
       .then((res) => {
         if (!res.ok) throw new Error("HTTP " + res.status);
         return res.json();
@@ -117,22 +110,6 @@ export default function App() {
   const handleUpdateContent = (newContent: AppContent) => {
     setContent(newContent);
     StorageService.saveContent(newContent);
-
-    const apiBase =
-      window.location.hostname.includes("run.app") ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname.includes("3000")
-        ? ""
-        : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
-
-    // Broadcast file-level CMS update payload to the backend server to preserve state across builds
-    fetch(`${apiBase}/api/save-content`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newContent),
-    }).catch((err) => {
-      console.warn("[CMS Sync] Local workspace sync error:", err);
-    });
   };
 
   const scrollToSection = (id: string, e?: React.MouseEvent) => {
