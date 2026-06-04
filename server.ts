@@ -9,38 +9,39 @@ import { getAuth } from "firebase-admin/auth";
 
 // Load configuration from firebase-applet-config.json for server-side initialization
 const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
+
+let adminApp: any = null;
 let firestoreDb: any = null;
 
 if (fs.existsSync(firebaseConfigPath)) {
   const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
   try {
-    // 1. Initialize for the specific project
-    const firebaseAdminApp = initializeApp({
+    // 1. Initialize Firebase Admin
+    adminApp = initializeApp({
       projectId: firebaseConfig.projectId,
     });
     
-    // 2. Target the specific CMS database instance if provided. 
-    // In AI Studio, the custom database ID is mandatory for accessing the persistent store.
+    // 2. Clear targeting for the persistent Firestore instance
     const databaseId = firebaseConfig.firestoreDatabaseId || "(default)";
-    firestoreDb = getFirestore(firebaseAdminApp, databaseId);
+    firestoreDb = getFirestore(adminApp, databaseId);
     
-    console.log(`[CMS Server] Firebase Admin connected to project: ${firebaseConfig.projectId}, database: ${databaseId}`);
+    console.log(`[CMS Server] Firebase Admin Initialized: ${firebaseConfig.projectId} [${databaseId}]`);
     
-    // 3. Simple warm-up/permission check (non-blocking)
+    // 3. Warm-up connectivity check
     firestoreDb.collection('cms').doc('latest').get()
       .then((doc: any) => {
         if (!doc.exists) {
-          console.warn("[CMS Server] Warm-up: 'cms/latest' document not found. It will be created on first save.");
+          console.log("[CMS Server] Warm-up: document 'cms/latest' is ready for initial creation.");
         } else {
-          console.log("[CMS Server] Warm-up: Successfully verified Firestore connectivity.");
+          console.log("[CMS Server] Warm-up: Firestore link verified.");
         }
       })
       .catch((err: any) => {
-        console.error("[CMS Server] Warm-up: Firestore verification failed. Check IAM permissions for the service account.", err.message);
+        console.warn("[CMS Server] Firestore warm-up warning (Permissions or DB ID mismatch):", err.message);
       });
 
   } catch (err) {
-    console.error("[CMS Server] Firebase Admin Modular Initialization Error:", err);
+    console.error("[CMS Server] Firebase Admin Init Critical Failure:", err);
   }
 }
 
@@ -131,15 +132,15 @@ async function startServer() {
       // 1. Verify Authorization (Production Strict Mode)
       if (token) {
         try {
-          const decodedToken = await getAuth().verifyIdToken(token);
+          const decodedToken = await getAuth(adminApp).verifyIdToken(token);
           const email = decodedToken.email;
           if (email !== "maliyagigs@gmail.com") {
-             console.warn(`[CMS Server] Blocked unauthorized write attempt from: ${email}`);
-             return res.status(403).json({ error: "Access Denied: Non-admin source." });
+             console.warn(`[CMS Server] Unauthorized attempt: ${email}`);
+             return res.status(403).json({ error: "Unauthorized: Admin privileges required." });
           }
         } catch (authErr) {
-          console.error("[CMS Server] Token verification failed:", authErr);
-          return res.status(401).json({ error: "Authentication expired. Access denied." });
+          console.error("[CMS Server] Token validation failed:", authErr);
+          return res.status(401).json({ error: "Session expired or invalid token." });
         }
       }
 

@@ -184,27 +184,35 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
     try {
       // 1. Get the Firebase Identity Token for secure server-side verification
       const currentUser = firebaseAuth.currentUser;
-      let idToken = '';
-      if (currentUser) {
-        idToken = await currentUser.getIdToken();
+      
+      if (!currentUser) {
+        throw new Error("User session not found. Please log in first.");
       }
 
-      const apiBase = window.location.hostname.includes('run.app') || window.location.hostname === 'localhost' || window.location.hostname.includes('3000')
-        ? ''
-        : 'https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app';
+      if (currentUser.email !== "maliyagigs@gmail.com") {
+        throw new Error("Unauthorized: Only the admin (maliyagigs@gmail.com) can commit changes to persistent storage.");
+      }
 
-      const response = await fetch(`${apiBase}/api/save-content`, {
+      const idToken = await currentUser.getIdToken();
+
+      // Use relative path for same-origin requests (AI Studio preview environment)
+      const apiEndpoint = '/api/save-content';
+
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': idToken ? `Bearer ${idToken}` : ''
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify(content)
       });
       
-      if (!response.ok) throw new Error('HTTP ' + response.status);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Server responded with status ' + response.status);
+      }
       
-      setSyncMessage('Workspace configuration saved!');
+      setSyncMessage('Changes pushed to production!');
       
       setTimeout(() => {
         setIsSyncing(false);
