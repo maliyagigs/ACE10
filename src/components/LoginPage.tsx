@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Icons from 'lucide-react';
-import { GoogleUser } from './GoogleAuth';
 import { StorageService } from '../services/storageService';
+import { GoogleUser } from '../types';
 
 interface LoginPageProps {
   theme: {

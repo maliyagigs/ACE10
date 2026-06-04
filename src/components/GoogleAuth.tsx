@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Icons from 'lucide-react';
+import { auth as firebaseAuth } from '../services/firebase';
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile
+} from 'firebase/auth';
 import { StorageService } from '../services/storageService';
-
-export interface GoogleUser {
-  name: string;
-  email: string;
-  picture: string;
-  sub?: string; // unique google ID
-  type: 'google' | 'email';
-}
+import { GoogleUser } from '../types';
 
 interface GoogleAuthProps {
   theme: {
@@ -22,24 +24,6 @@ interface GoogleAuthProps {
   setUser: (user: GoogleUser | null) => void;
 }
 
-// Simple client-side JWT decoder for Google Identity tokens
-function decodeJwt(token: string): any {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      window.atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error("JWT decoding failed:", error);
-    return null;
-  }
-}
-
 export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUser }: GoogleAuthProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
@@ -49,16 +33,13 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Feedback states
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  const clientId = "793024535052-2fjl8pdruv3m22oglc3lsiqkqi3qf9cp.apps.googleusercontent.com";
-  const [gsiLoaded, setGsiLoaded] = useState(false);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const btnContainerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -71,228 +52,109 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Dynamically load Google GSI client library script
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    if (document.getElementById('google-gsi-client')) {
-      setGsiLoaded(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = 'google-gsi-client';
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      setGsiLoaded(true);
-    };
-    script.onerror = () => {
-      console.error("Failed loading Google Identity Services client script.");
-    };
-    document.head.appendChild(script);
-  }, []);
-
-  // Initialize and Render button when GSI & Client ID are ready inside the Modal
-  useEffect(() => {
-    if (!gsiLoaded || !clientId || user || !modalOpen) return;
-
-    // Use a small timeout to let the modal mount the DOM element cleanly
-    const timer = setTimeout(() => {
-      try {
-        const handleCredentialResponse = (response: any) => {
-          const decoded = decodeJwt(response.credential);
-          if (decoded) {
-            const transformedUser: GoogleUser = {
-              name: decoded.name || 'Google User',
-              email: decoded.email || '',
-              picture: decoded.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
-              sub: decoded.sub,
-              type: 'google'
-            };
-            setUser(transformedUser);
-            StorageService.saveCurrentUser(transformedUser);
-            setModalOpen(false);
-            setSuccessMsg(null);
-            setErrorMsg(null);
-          }
-        };
-
-        // @ts-ignore
-        const google = window.google;
-        if (google && google.accounts && google.accounts.id) {
-          google.accounts.id.initialize({
-            client_id: clientId,
-            callback: handleCredentialResponse,
-            auto_select: false,
-            cancel_on_tap_outside: true,
-          });
-
-          const btnElement = document.getElementById('google-gsi-button-container');
-          if (btnElement) {
-            google.accounts.id.renderButton(
-              btnElement,
-              { 
-                theme: 'filled_black', 
-                size: 'large', 
-                shape: 'pill',
-                width: 250,
-                text: 'signin_with'
-              }
-            );
-          }
-        }
-      } catch (err) {
-        console.error("Error setting up Google Auth script buttons:", err);
-      }
-    }, 120);
-
-    return () => clearTimeout(timer);
-  }, [gsiLoaded, clientId, user, modalOpen, activeTab]);
-
-  const handleSignOut = () => {
-    setUser(null);
-    StorageService.saveCurrentUser(null);
-    setDropdownOpen(false);
-    
-    // @ts-ignore
-    const google = window.google;
-    if (google && google.accounts && google.accounts.id && user) {
-      try {
-        google.accounts.id.disableAutoSelect();
-      } catch (err) {
-        console.warn(err);
-      }
-    }
-  };
-
-  // Fully functioning Email Sign-In
-  const handleEmailSignIn = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleSignIn = async () => {
     setErrorMsg(null);
-    setSuccessMsg(null);
-
-    if (!email.trim() || !password) {
-      setErrorMsg("Please enter both email and password.");
-      return;
-    }
-
-    // Load registered users from StorageService
-    const registeredUsers = StorageService.loadRegisteredUsers();
-
-    // Search user
-    const foundUser = registeredUsers.find(
-      (u) => u.email.toLowerCase().trim() === email.toLowerCase().trim()
-    );
-
-    if (!foundUser) {
-      setErrorMsg("No account found with this email. Please check your credentials or Sign Up!");
-      return;
-    }
-
-    if (foundUser.password !== password) {
-      setErrorMsg("Incorrect password. Please try again.");
-      return;
-    }
-
-    // Success Authentication
-    const loggedInUser: GoogleUser = {
-      name: foundUser.name,
-      email: foundUser.email,
-      picture: foundUser.picture || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop`,
-      type: 'email'
-    };
-
-    setSuccessMsg("Success! Welcome back, signing you in...");
-    setTimeout(() => {
-      setUser(loggedInUser);
-      StorageService.saveCurrentUser(loggedInUser);
+    setIsProcessing(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(firebaseAuth, provider);
+      const fbUser = result.user;
+      
+      const transformedUser: GoogleUser = {
+        name: fbUser.displayName || 'Google User',
+        email: fbUser.email || '',
+        picture: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
+        uid: fbUser.uid,
+        type: 'google'
+      };
+      
+      setUser(transformedUser);
+      StorageService.saveCurrentUser(transformedUser);
       setModalOpen(false);
-      // reset form
-      setEmail('');
-      setPassword('');
-      setSuccessMsg(null);
-    }, 1000);
+    } catch (err: any) {
+      console.error("Google Sign-In Error:", err);
+      setErrorMsg(err.message || "Failed to authenticate with Google.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  // Fully functioning Email Sign-Up (Registration)
-  const handleEmailSignUp = (e: React.FormEvent) => {
+  const handleSignOut = async () => {
+    try {
+      await signOut(firebaseAuth);
+      setUser(null);
+      StorageService.saveCurrentUser(null);
+      setDropdownOpen(false);
+    } catch (err) {
+      console.error("Sign-out error:", err);
+    }
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
-    setSuccessMsg(null);
-
-    // Validations
-    if (!name.trim()) {
-      setErrorMsg("Full Name is required.");
-      return;
-    }
-    if (!email.trim() || !email.includes('@')) {
-      setErrorMsg("Please enter a valid email address.");
-      return;
-    }
-    if (password.length < 6) {
-      setErrorMsg("Password must be at least 6 characters long.");
-      return;
-    }
-
-    // Load registered users array
-    const registeredUsers = StorageService.loadRegisteredUsers();
-
-    // Check if duplicate email
-    const duplicate = registeredUsers.some(
-      (u) => u.email.toLowerCase().trim() === email.toLowerCase().trim()
-    );
-
-    if (duplicate) {
-      setErrorMsg("An account with this email address already exists. Please choose a different email or select Sign In.");
-      return;
-    }
-
-    // Create avatar placeholder with a nice human image based on initials or general seed
-    const avatarSeed = Math.floor(Math.random() * 100);
-    const pictures = [
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop"
-    ];
-    const chosenPicture = pictures[avatarSeed % pictures.length];
-
-    // Push new credentials
-    const newUser = {
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      password: password,
-      picture: chosenPicture
-    };
+    setIsProcessing(true);
 
     try {
-      StorageService.saveRegisteredUser(newUser);
+      const result = await signInWithEmailAndPassword(firebaseAuth, email, password);
+      const fbUser = result.user;
+      
+      const loggedInUser: GoogleUser = {
+        name: fbUser.displayName || email.split('@')[0],
+        email: fbUser.email || email,
+        picture: fbUser.photoURL || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop`,
+        uid: fbUser.uid,
+        type: 'email'
+      };
+
+      setSuccessMsg("Welcome back! Signing you in...");
+      setTimeout(() => {
+        setUser(loggedInUser);
+        StorageService.saveCurrentUser(loggedInUser);
+        setModalOpen(false);
+        setSuccessMsg(null);
+      }, 1000);
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed creating credentials.");
-      return;
+      setErrorMsg(err.message || "Invalid credentials.");
+    } finally {
+      setIsProcessing(false);
     }
+  };
 
-    // Sign them in instantly
-    const loggedInUser: GoogleUser = {
-      name: newUser.name,
-      email: newUser.email,
-      picture: newUser.picture,
-      type: 'email'
-    };
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setIsProcessing(true);
 
-    setSuccessMsg("Account created! Access granted, wrapping up setup...");
-    setTimeout(() => {
-      setUser(loggedInUser);
-      StorageService.saveCurrentUser(loggedInUser);
-      setModalOpen(false);
-      // reset forms
-      setName('');
-      setEmail('');
-      setPassword('');
-      setSuccessMsg(null);
-    }, 1200);
+    try {
+      const result = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+      const fbUser = result.user;
+      
+      await updateProfile(fbUser, {
+        displayName: name,
+        photoURL: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop`
+      });
+
+      const loggedInUser: GoogleUser = {
+        name: name,
+        email: fbUser.email || email,
+        picture: fbUser.photoURL || "",
+        uid: fbUser.uid,
+        type: 'email'
+      };
+
+      setSuccessMsg("Account created! Access granted.");
+      setTimeout(() => {
+        setUser(loggedInUser);
+        StorageService.saveCurrentUser(loggedInUser);
+        setModalOpen(false);
+        setSuccessMsg(null);
+      }, 1000);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to create account.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (!user) {
@@ -521,26 +383,28 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
             {/* Interactive OR Divider */}
             <div className="relative flex py-2 items-center text-xs relative z-10">
               <div className="flex-grow border-t border-slate-850"></div>
-              <span className="flex-shrink mx-4 text-slate-500 font-mono text-[10px] font-bold uppercase tracking-wider">or sign in with</span>
+              <span className="flex-shrink mx-4 text-slate-500 font-mono text-[10px] font-bold uppercase tracking-wider">or continue with</span>
               <div className="flex-grow border-t border-slate-850"></div>
-                {/* Official Google identity loader card and mount element */}
+            </div>
+
+            {/* Official Firebase Google Auth Button */}
             <div className="space-y-3 relative z-10">
-              <div className="flex flex-col items-center justify-center py-4 border border-dashed border-slate-800/80 rounded-2xl bg-slate-950/40 gap-3">
-                {clientId ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <div id="google-gsi-button-container" ref={btnContainerRef} className="min-h-[44px]" />
-                  </div>
-                ) : (
-                  <div className="text-center p-2 space-y-1.5">
-                    <Icons.Lock className="w-6 h-6 text-slate-550 mx-auto" />
-                    <p className="text-xs text-slate-400 font-bold">Standard Google login bypass active</p>
-                    <p className="text-[10px] text-slate-500 max-w-[280px]">
-                      Enter a Google OAuth Web ID below to enable the official Google authentication container frame.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>          </div>
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isProcessing}
+                className="w-full flex items-center justify-center gap-3 py-3 bg-white hover:bg-slate-50 text-slate-900 rounded-xl font-bold text-xs uppercase tracking-wide transition-all border border-slate-200 shadow-sm disabled:opacity-50 cursor-pointer"
+              >
+                <img src="https://www.gstatic.com/firebase/anonymous-scan.png" alt="Google" className="w-4 h-4 hidden" />
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                   <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
+                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Sign in with Google</span>
+              </button>
+            </div>
 
             {/* Footer Workspace Info */}
             <div className="border-t border-slate-850 pt-4 mt-2 text-[10px] text-slate-500 flex items-center justify-between font-medium relative z-10">

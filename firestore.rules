@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. GLOBAL HELPERS & PRIMITIVES
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Admin check based on hardcoded management email
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email == "maliyagigs@gmail.com" && 
+             request.auth.token.email_verified == true;
+    }
+
+    // Helper to validate incoming payloads (Pillar 2)
+    function isValidCMSUpdate(data) {
+      return data.keys().hasAll(['content', 'updatedAt']) &&
+             data.content is map &&
+             data.updatedAt is string;
+    }
+
+    // 2. DEFAULT DENY CATCH-ALL (Pillar 1)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. CMS CONFIGURATION (Pillar 3 & 6)
+    match /cms/{docId} {
+      // Configuration must be publicly readable to serve the site's dynamic content
+      allow read: if true;
+      
+      // Strict write access restricted to verified administrators
+      allow create, update: if isAdmin() && isValidCMSUpdate(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // 4. USER PROFILES
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && 
+                     request.resource.data.uid == request.auth.uid &&
+                     request.resource.data.keys().size() <= 10; // Prevent resource poisoning
+      allow update: if isOwner(userId) && 
+                     request.resource.data.uid == existing().uid;
+    }
+  }
+}

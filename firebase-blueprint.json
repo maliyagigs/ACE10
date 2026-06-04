@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "AppConfig": {
+      "title": "Application Configuration",
+      "description": "Dynamic CMS content for the entire application",
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "object",
+          "description": "The full AppContent JSON structure"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["content", "updatedAt"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "User metadata and roles",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "displayName": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/cms/{docId}": {
+      "schema": "AppConfig",
+      "description": "Stores site-wide CMS configurations."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profile data."
+    }
+  }
+}

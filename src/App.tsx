@@ -3,6 +3,9 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { initialContent } from "./data";
 import { AppContent } from "./types";
 import { StorageService } from "./services/storageService";
+import { db, auth as firebaseAuth } from "./services/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 // Importing Premium custom sections
 import AmbientBackground from "./components/AmbientBackground";
@@ -66,52 +69,62 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Sync Google/Email Authorized User session on load using isolated StorageService
+  // 1. Synchronize Auth Session with Firebase Client SDK (Unified Auth)
   useEffect(() => {
-    const savedUser = StorageService.loadCurrentUser();
-    if (savedUser) {
-      setUser(savedUser);
-    }
+    const unsubscribeAuth = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
+      if (firebaseUser) {
+        const transformedUser: any = {
+          name: firebaseUser.displayName || "Firebase User",
+          email: firebaseUser.email,
+          picture: firebaseUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+          uid: firebaseUser.uid,
+          type: 'firebase'
+        };
+        setUser(transformedUser);
+        StorageService.saveCurrentUser(transformedUser);
+      } else {
+        // Fallback to check if a legacy session exists (from potential local-only flow)
+        const savedUser = StorageService.loadCurrentUser();
+        if (savedUser) setUser(savedUser);
+      }
+    });
+
+    return () => unsubscribeAuth();
   }, []);
 
-  // Synchronize App Content using custom StorageService database fallback & live server API
+  // 2. Real-time CMS Synchronization: Listen for Cloud Firestore changes
   useEffect(() => {
-    // 1. Initial local state / offline recovery fallback
-    const syncContent = StorageService.loadContent(initialContent);
-    setContent(syncContent);
+    // a. Load initial local state for immediate renders (SSR/Offline cache)
+    const localContent = StorageService.loadContent(initialContent);
+    setContent(localContent);
 
-    // 2. Query the live AI Studio Workspace Server to read the database-level config
-    const apiBase =
-      window.location.hostname.includes("run.app") ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname.includes("3000")
-        ? ""
-        : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
-
-    fetch(`${apiBase}/api/get-content`)
-      .then((res) => {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
-      .then((liveContent) => {
-        if (
-          liveContent &&
-          typeof liveContent === "object" &&
-          liveContent.siteName
-        ) {
-          setContent(liveContent);
-          StorageService.saveContent(liveContent);
-          console.info(
-            "[CMS Sync] Loaded latest production configurations from workspace adapter!",
-          );
+    // b. Attach real-time listener to the 'latest' CMS configuration document
+    const cmsDocRef = doc(db, "cms", "latest");
+    const unsubscribeSnapshot = onSnapshot(cmsDocRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const liveData = snapshot.data();
+        if (liveData && liveData.content) {
+          console.info("[CMS Sync] Real-time configuration push detected from Cloud!");
+          setContent(liveData.content);
+          StorageService.saveContent(liveData.content);
         }
-      })
-      .catch((err) => {
-        console.debug(
-          "[CMS Sync] Offline or external workspace fallback:",
-          err.message,
-        );
-      });
+      }
+    }, (err) => {
+      console.warn("[CMS Sync] Firestore listener constrained or restricted:", err.message);
+      
+      // Fallback: Attempt one-time REST fetch if real-time fails (e.g. initial setup)
+      const apiBase = window.location.hostname.includes("run.app") || window.location.hostname === "localhost" || window.location.hostname.includes("3000") ? "" : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
+      fetch(`${apiBase}/api/get-content`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.siteName) {
+            setContent(data);
+            StorageService.saveContent(data);
+          }
+        }).catch(() => {});
+    });
+
+    return () => unsubscribeSnapshot();
   }, []);
 
   const handleUpdateContent = (newContent: AppContent) => {

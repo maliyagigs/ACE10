@@ -41,6 +41,15 @@ export interface Country {
   name: string;
 }
 
+export interface GoogleUser {
+  name: string;
+  email: string;
+  picture: string;
+  uid?: string;
+  sub?: string;
+  type: 'google' | 'email' | 'firebase';
+}
+
 export interface FooterSection {
   id: string;
   title: string;

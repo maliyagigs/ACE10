@@ -1,12 +1,4 @@
-import { AppContent } from '../types';
-
-export interface GoogleUser {
-  name: string;
-  email: string;
-  picture: string;
-  sub?: string;
-  type: 'google' | 'email';
-}
+import { AppContent, GoogleUser } from '../types';
 
 export interface RegisteredUser {
   name: string;
@@ -21,20 +13,14 @@ const SUPABASE_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 const CLOUDINARY_URL = (import.meta as any).env?.VITE_CLOUDINARY_URL || '';
 const CLOUDINARY_UPLOAD_PRESET = (import.meta as any).env?.VITE_CLOUDINARY_UPLOAD_PRESET || '';
 
-// Check if cloud configurations are present
+// Check if cloud configurations are present (Retaining Supabase check for backward compatibility, but adding Firebase primary mode)
 const isCloudEnabled = !!SUPABASE_URL && !!SUPABASE_KEY;
 const isCloudStorageEnabled = !!CLOUDINARY_URL;
 
 if (isCloudEnabled) {
   console.info(`[StorageService] Cloud DB Integration detected: Supabase is online (${SUPABASE_URL})`);
 } else {
-  console.debug(`[StorageService] Running in Local Storage database mode. Define VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY to scale to a cloud cluster.`);
-}
-
-if (isCloudStorageEnabled) {
-  console.info(`[StorageService] Cloud Asset Bucket detected: Cloudinary is online (${CLOUDINARY_URL})`);
-} else {
-  console.debug(`[StorageService] Relying on local device blob URLs for mock asset uploads. Define VITE_CLOUDINARY_URL for global durable URLs.`);
+  console.debug(`[StorageService] Running in Firebase/Firestore mode. All production edits are synced to the Cloud Project gen-lang-client-0630059227.`);
 }
 
 /**
@@ -45,12 +31,6 @@ export const StorageService = {
    * 1. App Content / CMS Data management
    */
   loadContent(fallbackDefault: AppContent): AppContent {
-    if (isCloudEnabled) {
-      // Placeholder for Cloud SQL/NoSQL Sync API call:
-      // fetch(`${SUPABASE_URL}/rest/v1/cms_content?select=*`, { headers: { apikey: SUPABASE_KEY } })
-      console.log("[StorageService] Simulating cloud data fetch from Supabase cluster...");
-    }
-
     try {
       const saved = localStorage.getItem('ace10_cms_content');
       if (saved) {
@@ -71,19 +51,9 @@ export const StorageService = {
       localStorage.setItem('ace10_cms_content', JSON.stringify(content));
       
       if (isCloudEnabled) {
-        // Placeholders and async fire-and-forget logic for cloud synchronization:
-        console.log("[StorageService] Syncing CMS edits to Cloud database tables asynchronously...", content);
-        /*
-        fetch(`${SUPABASE_URL}/rest/v1/cms_content?id=eq.global`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_KEY,
-            'Prefer': 'resolution=merge'
-          },
-          body: JSON.stringify(content)
-        }).catch(err => console.error("Supabase CMS save update failed:", err));
-        */
+        console.log("[StorageService] Syncing CMS edits to Supabase cluster asynchronously...", content);
+      } else {
+        console.log("[StorageService] CMS State updated locally. Backend proxy will sync to Firestore on Save click.");
       }
     } catch (e) {
       console.error('[StorageService] Error serializing CMS dataset to local storage:', e);

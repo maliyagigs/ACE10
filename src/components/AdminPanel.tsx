@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import * as Icons from 'lucide-react';
+import { auth as firebaseAuth } from '../services/firebase';
 import { AppContent, Service, PortfolioItem, Testimonial, Stat, HeroImageSub, Country } from '../types';
 import { initialContent } from '../data';
 
@@ -178,16 +179,26 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
 
   const handleForceSync = async () => {
     setIsSyncing(true);
-    setSyncMessage('Writing CMS configs to workspace...');
+    setSyncMessage('Authenticating & Writing CMS configs...');
     
     try {
+      // 1. Get the Firebase Identity Token for secure server-side verification
+      const currentUser = firebaseAuth.currentUser;
+      let idToken = '';
+      if (currentUser) {
+        idToken = await currentUser.getIdToken();
+      }
+
       const apiBase = window.location.hostname.includes('run.app') || window.location.hostname === 'localhost' || window.location.hostname.includes('3000')
         ? ''
         : 'https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app';
 
       const response = await fetch(`${apiBase}/api/save-content`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': idToken ? `Bearer ${idToken}` : ''
+        },
         body: JSON.stringify(content)
       });
       
@@ -198,7 +209,7 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
       setTimeout(() => {
         setIsSyncing(false);
         setSyncMessage('');
-        alert('Changes saved securely to your AI Studio workspace!\n\nIMPORTANT: To update Vercel, you must manually push these changes to GitHub.\n\n1. Go to the top right corner of AI Studio.\n2. Click "Export" -> "Save to GitHub".\n\nVercel will automatically deploy once GitHub is updated.');
+        alert('Changes saved securely to your Production Cloud Database!\n\n1. Your live website now reflects these changes immediately.\n2. Edits have also been written to your workspace data.ts file.\n3. To permanently update your GitHub/Vercel codebase, click "Export" -> "Save to GitHub" in the AI Studio menu.');
       }, 1000);
       
     } catch (err: any) {

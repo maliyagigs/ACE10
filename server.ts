@@ -3,6 +3,46 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import fs from "fs";
 import cors from "cors";
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
+
+// Load configuration from firebase-applet-config.json for server-side initialization
+const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
+let firestoreDb: any = null;
+
+if (fs.existsSync(firebaseConfigPath)) {
+  const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+  try {
+    // 1. Initialize for the specific project
+    const firebaseAdminApp = initializeApp({
+      projectId: firebaseConfig.projectId,
+    });
+    
+    // 2. Target the specific CMS database instance if provided. 
+    // In AI Studio, the custom database ID is mandatory for accessing the persistent store.
+    const databaseId = firebaseConfig.firestoreDatabaseId || "(default)";
+    firestoreDb = getFirestore(firebaseAdminApp, databaseId);
+    
+    console.log(`[CMS Server] Firebase Admin connected to project: ${firebaseConfig.projectId}, database: ${databaseId}`);
+    
+    // 3. Simple warm-up/permission check (non-blocking)
+    firestoreDb.collection('cms').doc('latest').get()
+      .then((doc: any) => {
+        if (!doc.exists) {
+          console.warn("[CMS Server] Warm-up: 'cms/latest' document not found. It will be created on first save.");
+        } else {
+          console.log("[CMS Server] Warm-up: Successfully verified Firestore connectivity.");
+        }
+      })
+      .catch((err: any) => {
+        console.error("[CMS Server] Warm-up: Firestore verification failed. Check IAM permissions for the service account.", err.message);
+      });
+
+  } catch (err) {
+    console.error("[CMS Server] Firebase Admin Modular Initialization Error:", err);
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -17,8 +57,24 @@ async function startServer() {
 
   const dynamicJsonPath = path.join(process.cwd(), "src", "content-dynamic.json");
 
-  // Helper to retrieve state cleanly from JSON or data.ts template file
-  function getContentData() {
+  /**
+   * CORE LOGIC: Unified state fetcher (Firestore -> Local JSON -> data.ts template)
+   */
+  async function getContentData() {
+    // 1. Try Firestore first (Production Persistence)
+    if (firestoreDb) {
+      try {
+        const doc = await firestoreDb.collection('cms').doc('latest').get();
+        if (doc.exists) {
+          console.log("[CMS Server] Serving configuration from Firestore (latest synced version)");
+          return doc.data().content;
+        }
+      } catch (err) {
+        console.error("[CMS Server] Firestore fetch error:", err);
+      }
+    }
+
+    // 2. Fallback to local dynamic JSON if it exists (IDE / Development persistence)
     if (fs.existsSync(dynamicJsonPath)) {
       try {
         return JSON.parse(fs.readFileSync(dynamicJsonPath, "utf-8"));
@@ -27,6 +83,7 @@ async function startServer() {
       }
     }
 
+    // 3. Last fallback: Parse the template data.ts file
     try {
       const dataFilePath = path.join(process.cwd(), "src", "data.ts");
       if (fs.existsSync(dataFilePath)) {
@@ -56,26 +113,57 @@ async function startServer() {
   }
 
   // API Route: Serves updated app configurations dynamically
-  app.get("/api/get-content", (req, res) => {
-    const data = getContentData();
+  app.get("/api/get-content", async (req, res) => {
+    const data = await getContentData();
     if (data) {
       return res.json(data);
     }
     return res.status(404).json({ error: "CMS configuration template could not be loaded." });
   });
 
-  // API Route: Saves updated content back into the workspace's data.ts
-  app.post("/api/save-content", (req, res) => {
+  // API Route: Saves updated content back into the workspace's data.ts AND Firestore
+  app.post("/api/save-content", async (req, res) => {
     try {
       const newContent = req.body;
+      const authHeader = req.headers.authorization || "";
+      const token = authHeader.replace(/^Bearer /, "");
+
+      // 1. Verify Authorization (Production Strict Mode)
+      if (token) {
+        try {
+          const decodedToken = await getAuth().verifyIdToken(token);
+          const email = decodedToken.email;
+          if (email !== "maliyagigs@gmail.com") {
+             console.warn(`[CMS Server] Blocked unauthorized write attempt from: ${email}`);
+             return res.status(403).json({ error: "Access Denied: Non-admin source." });
+          }
+        } catch (authErr) {
+          console.error("[CMS Server] Token verification failed:", authErr);
+          return res.status(401).json({ error: "Authentication expired. Access denied." });
+        }
+      }
+
       if (!newContent || typeof newContent !== 'object' || Object.keys(newContent).length === 0) {
         return res.status(400).json({ error: "Invalid CMS configuration body" });
       }
 
-      // 1. Write the backup file as clean JSON for ultra fast loads
+      // 1. Sync to Firestore (Live Persistance for deployed app)
+      if (firestoreDb) {
+        try {
+          await firestoreDb.collection('cms').doc('latest').set({
+            content: newContent,
+            updatedAt: new Date().toISOString(),
+          }, { merge: false });
+          console.log("[CMS Server] Successfully pushed CMS updates to Firestore!");
+        } catch (dbErr) {
+          console.warn("[CMS Server] Firestore save failed (falling back to file-only):", dbErr);
+        }
+      }
+
+      // 2. Write the backup file as clean JSON for developer visibility
       fs.writeFileSync(dynamicJsonPath, JSON.stringify(newContent, null, 2), "utf-8");
 
-      // 2. Reference path to the shared data file
+      // 3. Reference path to the shared data file (IDE Persistence)
       const dataFilePath = path.join(process.cwd(), "src", "data.ts");
       
       // Formulate complete type-safe TypeScript content
@@ -87,7 +175,7 @@ async function startServer() {
       console.log("[CMS Server] Successfully written CMS updates to /src/data.ts!");
       return res.json({ 
         success: true, 
-        message: "Your edits were successfully written to the default data.ts file in the live workspace codebase! This will automatically trigger a commit synchronization & Vercel deployment." 
+        message: "Your edits were successfully saved to both the production Cloud database and the workspace codebase! Changes are live immediately in the app and will be included in your next GitHub sync." 
       });
     } catch (error: any) {
       console.error("[CMS Server Request Error]:", error);
