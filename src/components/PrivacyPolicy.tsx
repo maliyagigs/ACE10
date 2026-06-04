@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'motion/react';
 import * as Icons from 'lucide-react';
 
+import { Link } from 'react-router-dom';
+
 interface PrivacyPolicyProps {
   onBack: () => void;
   theme: {
@@ -12,14 +14,13 @@ interface PrivacyPolicyProps {
 export default function PrivacyPolicy({ onBack, theme }: PrivacyPolicyProps) {
   return (
     <div className="max-w-4xl mx-auto pt-32 pb-20 px-6 prose prose-invert prose-slate">
-      <motion.button
-        onClick={onBack}
-        whileHover={{ x: -4 }}
+      <Link
+        to="/"
         className="mb-8 flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
       >
         <Icons.ArrowLeft className="w-4 h-4" />
         Back to Home
-      </motion.button>
+      </Link>
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}

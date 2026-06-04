@@ -1,30 +1,31 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { initialContent } from './data';
-import { AppContent } from './types';
-import { StorageService } from './services/storageService';
+import React, { useState, useEffect, lazy, Suspense } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { initialContent } from "./data";
+import { AppContent } from "./types";
+import { StorageService } from "./services/storageService";
 
 // Importing Premium custom sections
-import AmbientBackground from './components/AmbientBackground';
-import InertiaScroll from './components/InertiaScroll';
-import Hero from './components/Hero';
-import Services from './components/Services';
-import Portfolio from './components/Portfolio';
-import WhyChooseUs from './components/WhyChooseUs';
-import Stats from './components/Stats';
-import Testimonials from './components/Testimonials';
-import ServedCountries from './components/ServedCountries';
-import ContactForm from './components/ContactForm';
-import Footer from './components/Footer';
-import GoogleAuth from './components/GoogleAuth';
-import LoadingScreen from './components/LoadingScreen';
-import PrivacyPolicy from './components/PrivacyPolicy';
-import TermsOfService from './components/TermsOfService';
+import AmbientBackground from "./components/AmbientBackground";
+import InertiaScroll from "./components/InertiaScroll";
+import Hero from "./components/Hero";
+import Services from "./components/Services";
+import Portfolio from "./components/Portfolio";
+import WhyChooseUs from "./components/WhyChooseUs";
+import Stats from "./components/Stats";
+import Testimonials from "./components/Testimonials";
+import ServedCountries from "./components/ServedCountries";
+import ContactForm from "./components/ContactForm";
+import Footer from "./components/Footer";
+import GoogleAuth from "./components/GoogleAuth";
+import LoadingScreen from "./components/LoadingScreen";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import TermsOfService from "./components/TermsOfService";
 
-import * as Icons from 'lucide-react';
+import * as Icons from "lucide-react";
 
 // Lazy load heavy CMS & login portals
-const AdminPanel = lazy(() => import('./components/AdminPanel'));
-const LoginPage = lazy(() => import('./components/LoginPage'));
+const AdminPanel = lazy(() => import("./components/AdminPanel"));
+const LoginPage = lazy(() => import("./components/LoginPage"));
 
 // Cybernetic Glassmorphism loading spinner for smooth lazy-loaded portals
 function CyberLoadingPlaceholder() {
@@ -34,7 +35,10 @@ function CyberLoadingPlaceholder() {
       <div className="relative w-14 h-14 mb-8">
         {/* Animated double-layer spin rings */}
         <div className="absolute inset-0 rounded-full border-2 border-slate-900 border-t-blue-500 animate-spin" />
-        <div className="absolute inset-2 rounded-full border-2 border-slate-950 border-t-emerald-450 animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse' }} />
+        <div
+          className="absolute inset-2 rounded-full border-2 border-slate-950 border-t-emerald-450 animate-spin"
+          style={{ animationDuration: "0.8s", animationDirection: "reverse" }}
+        />
       </div>
       <p className="text-xs font-mono uppercase tracking-[0.2em] text-slate-400 font-extrabold animate-pulse">
         Initializing Module
@@ -43,7 +47,10 @@ function CyberLoadingPlaceholder() {
         Securing telemetry credentials & local schema sync...
       </p>
       <div className="mt-6 w-40 h-1 bg-slate-950/60 overflow-hidden rounded-full border border-slate-900/40 relative">
-        <div className="absolute top-0 h-full w-14 bg-gradient-to-r from-blue-500 to-emerald-400 animate-pulse" style={{ left: '30%' }} />
+        <div
+          className="absolute top-0 h-full w-14 bg-gradient-to-r from-blue-500 to-emerald-400 animate-pulse"
+          style={{ left: "30%" }}
+        />
       </div>
     </div>
   );
@@ -54,8 +61,10 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'home' | 'auth' | 'privacy' | 'terms'>('home');
   const [isSiteLoaded, setIsSiteLoaded] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Sync Google/Email Authorized User session on load using isolated StorageService
   useEffect(() => {
@@ -72,42 +81,57 @@ export default function App() {
     setContent(syncContent);
 
     // 2. Query the live AI Studio Workspace Server to read the database-level config
-    const apiBase = window.location.hostname.includes('run.app') || window.location.hostname === 'localhost' || window.location.hostname.includes('3000')
-      ? ''
-      : 'https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app';
+    const apiBase =
+      window.location.hostname.includes("run.app") ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname.includes("3000")
+        ? ""
+        : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
 
     fetch(`${apiBase}/api/get-content`)
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+      .then((res) => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
         return res.json();
       })
-      .then(liveContent => {
-        if (liveContent && typeof liveContent === 'object' && liveContent.siteName) {
+      .then((liveContent) => {
+        if (
+          liveContent &&
+          typeof liveContent === "object" &&
+          liveContent.siteName
+        ) {
           setContent(liveContent);
           StorageService.saveContent(liveContent);
-          console.info('[CMS Sync] Loaded latest production configurations from workspace adapter!');
+          console.info(
+            "[CMS Sync] Loaded latest production configurations from workspace adapter!",
+          );
         }
       })
-      .catch(err => {
-        console.debug('[CMS Sync] Offline or external workspace fallback:', err.message);
+      .catch((err) => {
+        console.debug(
+          "[CMS Sync] Offline or external workspace fallback:",
+          err.message,
+        );
       });
   }, []);
 
   const handleUpdateContent = (newContent: AppContent) => {
     setContent(newContent);
     StorageService.saveContent(newContent);
-    
-    const apiBase = window.location.hostname.includes('run.app') || window.location.hostname === 'localhost' || window.location.hostname.includes('3000')
-      ? ''
-      : 'https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app';
+
+    const apiBase =
+      window.location.hostname.includes("run.app") ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname.includes("3000")
+        ? ""
+        : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
 
     // Broadcast file-level CMS update payload to the backend server to preserve state across builds
     fetch(`${apiBase}/api/save-content`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newContent)
-    }).catch(err => {
-      console.warn('[CMS Sync] Local workspace sync error:', err);
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newContent),
+    }).catch((err) => {
+      console.warn("[CMS Sync] Local workspace sync error:", err);
     });
   };
 
@@ -116,19 +140,30 @@ export default function App() {
       e.preventDefault();
     }
     setIsAdmin(false);
-    setCurrentView('home');
-    
+
+    // If we're not on the home page, redirect to home and then scroll
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+      return;
+    }
+
     // Low latency transition to let React switch DOM views before measuring scroll offsets
     setTimeout(() => {
       const element = document.getElementById(id);
       if (element) {
         const elementRect = element.getBoundingClientRect();
         const absoluteElementY = elementRect.top + window.scrollY - 80; // Minus 80px for the sticky header
-        
-        if (typeof (window as any).__triggerInertiaScroll === 'function') {
+
+        if (typeof (window as any).__triggerInertiaScroll === "function") {
           (window as any).__triggerInertiaScroll(absoluteElementY);
         } else {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }
     }, 60);
@@ -140,20 +175,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen relative text-slate-100 font-sans selection:bg-blue-600 selection:text-white antialiased">
-      
       {/* 1. Immersive Ambient Particles and glowing moving blobs behind layout */}
       <AmbientBackground theme={content.theme} />
       <InertiaScroll />
 
       {/* Modern cyber glass floating Navigation bar */}
       <nav className="fixed top-0 inset-x-0 h-20 bg-slate-950/70 backdrop-blur-xl border-b border-slate-900/80 flex items-center justify-between px-6 md:px-12 z-50">
-        
         {/* Dynamic Site Name configured by CMS */}
-        <a 
-          href="#" 
+        <a
+          href="/"
           onClick={(e) => {
             e.preventDefault();
-            setCurrentView('home');
+            navigate("/");
           }}
           className="flex items-center gap-2.5 group"
         >
@@ -164,17 +197,41 @@ export default function App() {
 
         {/* Desktop Quick links */}
         <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
-          <a href="#services" onClick={(e) => scrollToSection('services', e)} className="hover:text-white transition-colors">Services</a>
-          <a href="#portfolio" onClick={(e) => scrollToSection('portfolio', e)} className="hover:text-white transition-colors">Portfolio</a>
-          <a href="#testimonials" onClick={(e) => scrollToSection('testimonials', e)} className="hover:text-white transition-colors">Testimonials</a>
-          <a href="#contact" onClick={(e) => scrollToSection('contact', e)} className="hover:text-white transition-colors">Quote Request</a>
+          <a
+            href="#services"
+            onClick={(e) => scrollToSection("services", e)}
+            className="hover:text-white transition-colors"
+          >
+            Services
+          </a>
+          <a
+            href="#portfolio"
+            onClick={(e) => scrollToSection("portfolio", e)}
+            className="hover:text-white transition-colors"
+          >
+            Portfolio
+          </a>
+          <a
+            href="#testimonials"
+            onClick={(e) => scrollToSection("testimonials", e)}
+            className="hover:text-white transition-colors"
+          >
+            Testimonials
+          </a>
+          <a
+            href="#contact"
+            onClick={(e) => scrollToSection("contact", e)}
+            className="hover:text-white transition-colors"
+          >
+            Quote Request
+          </a>
         </div>
 
         {/* Action Controls Group: Google Login + CMS / Design Mode */}
         <div className="flex items-center gap-3">
           {/* Integrated Google OAuth client-side status element */}
-          <GoogleAuth 
-            theme={content.theme} 
+          <GoogleAuth
+            theme={content.theme}
             modalOpen={authModalOpen}
             setModalOpen={setAuthModalOpen}
             user={user}
@@ -182,13 +239,13 @@ export default function App() {
           />
 
           {/* CMS / Design Mode Toggle Button */}
-          {user?.email === 'maliyagigs@gmail.com' && (
-            <button 
+          {user?.email === "maliyagigs@gmail.com" && (
+            <button
               onClick={() => setIsAdmin(!isAdmin)}
               className={`flex items-center gap-2 text-xs font-mono font-bold px-4 py-2.5 rounded-full transition-all duration-300 relative overflow-hidden cursor-pointer border ${
-                isAdmin 
-                  ? 'bg-blue-600 text-white border-transparent shadow-lg shadow-blue-500/20' 
-                  : 'border-slate-800 bg-slate-900/50 hover:bg-slate-950 text-slate-350 hover:text-white'
+                isAdmin
+                  ? "bg-blue-600 text-white border-transparent shadow-lg shadow-blue-500/20"
+                  : "border-slate-800 bg-slate-900/50 hover:bg-slate-950 text-slate-350 hover:text-white"
               }`}
             >
               {isAdmin ? (
@@ -207,81 +264,139 @@ export default function App() {
         </div>
       </nav>
 
-      {currentView === 'auth' ? (
-        <div className="pt-28 pb-12 px-6">
-          <Suspense fallback={<CyberLoadingPlaceholder />}>
-            <LoginPage 
-              theme={content.theme} 
-              user={user} 
-              setUser={setUser} 
-              onBackToHome={() => setCurrentView('home')} 
-            />
-          </Suspense>
-        </div>
-      ) : currentView === 'privacy' ? (
-        <div className="pt-28 pb-12 px-6">
-          <PrivacyPolicy onBack={() => setCurrentView('home')} theme={content.theme} />
-        </div>
-      ) : currentView === 'terms' ? (
-        <div className="pt-28 pb-12 px-6">
-          <TermsOfService onBack={() => setCurrentView('home')} theme={content.theme} />
-        </div>
-      ) : (
-        <div className="relative flex flex-col xl:flex-row">
-          
-          {/* Main App Content - scale down dynamically if admin side-panel is open on desktop */}
-          <main className={`relative transition-all duration-500 ease-in-out origin-top ${isAdmin ? 'xl:w-2/3 opacity-50 xl:opacity-100 xl:scale-95' : 'w-full scale-100'}`}>
-            <div className={`${isAdmin ? 'pointer-events-none' : ''}`}>
-              {/* Hero section */}
-              <Hero 
-                content={content.hero} 
-                theme={content.theme} 
-                isLoggedIn={!!user}
-                onStartProject={() => {
-                  if (user) {
-                    scrollToSection('contact');
-                  } else {
-                    setCurrentView('auth');
-                  }
-                }}
-              />
-              
-              {/* Numerical counters section */}
-              <Stats stats={content.stats} theme={content.theme} />
-
-              {/* Handcrafted Services layout with organic vector shapes rendering behind cards */}
-              <Services services={content.services} theme={content.theme} header={content.servicesHeader} />
-
-              {/* Segment showing custom vertical project showcase mockups */}
-              <Portfolio portfolio={content.portfolio} theme={content.theme} header={content.portfolioHeader} />
-
-              {/* Elegant benefits/features display */}
-              <WhyChooseUs theme={content.theme} siteName={content.siteName} whyChooseUs={content.whyChooseUs} />
-
-              {/* Testimonial endorse panel */}
-              <Testimonials testimonials={content.testimonials} theme={content.theme} header={content.testimonialsHeader} />
-
-              {/* Served Flags badge list */}
-              <ServedCountries countries={content.countries} theme={content.theme} header={content.countriesHeader} />
-
-              {/* Floating inputs contact quote selector */}
-              <ContactForm theme={content.theme} header={content.contactHeader} />
-
-              {/* Detailed scalable footer list */}
-              <Footer footer={content.footer} theme={content.theme} siteName={content.siteName} setCurrentView={setCurrentView} />
-            </div>
-          </main>
-
-          {/* Admin CMS Side Panel overlaying the layout smoothly */}
-          {isAdmin && (
-            <div className="xl:fixed xl:right-0 xl:top-20 xl:w-1/3 xl:h-[calc(100vh-80px)] xl:overflow-y-auto bg-slate-950/90 backdrop-blur-3xl border-l border-slate-800/80 shadow-2xl z-40 w-full animate-fade-in order-first xl:order-last pb-20 xl:pb-0">
+      <Routes>
+        <Route
+          path="/auth"
+          element={
+            <div className="pt-28 pb-12 px-6">
               <Suspense fallback={<CyberLoadingPlaceholder />}>
-                <AdminPanel content={content} setContent={handleUpdateContent} />
+                <LoginPage
+                  theme={content.theme}
+                  user={user}
+                  setUser={setUser}
+                  onBackToHome={() => navigate("/")}
+                />
               </Suspense>
             </div>
-          )}
-        </div>
-      )}
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <div className="pt-28 pb-12 px-6">
+              <PrivacyPolicy
+                onBack={() => navigate("/")}
+                theme={content.theme}
+              />
+            </div>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <div className="pt-28 pb-12 px-6">
+              <TermsOfService
+                onBack={() => navigate("/")}
+                theme={content.theme}
+              />
+            </div>
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <div className="relative flex flex-col xl:flex-row">
+              {/* Main App Content - scale down dynamically if admin side-panel is open on desktop */}
+              <main
+                className={`relative transition-all duration-500 ease-in-out origin-top ${isAdmin ? "xl:w-2/3 opacity-50 xl:opacity-100 xl:scale-95" : "w-full scale-100"}`}
+              >
+                <div className={`${isAdmin ? "pointer-events-none" : ""}`}>
+                  {/* Hero section */}
+                  <Hero
+                    content={content.hero}
+                    theme={content.theme}
+                    isLoggedIn={!!user}
+                    onStartProject={() => {
+                      if (user) {
+                        scrollToSection("contact");
+                      } else {
+                        navigate("/auth");
+                      }
+                    }}
+                  />
+
+                  {/* Numerical counters section */}
+                  <Stats stats={content.stats} theme={content.theme} />
+
+                  {/* Handcrafted Services layout with organic vector shapes rendering behind cards */}
+                  <Services
+                    services={content.services}
+                    theme={content.theme}
+                    header={content.servicesHeader}
+                  />
+
+                  {/* Segment showing custom vertical project showcase mockups */}
+                  <Portfolio
+                    portfolio={content.portfolio}
+                    theme={content.theme}
+                    header={content.portfolioHeader}
+                  />
+
+                  {/* Elegant benefits/features display */}
+                  <WhyChooseUs
+                    theme={content.theme}
+                    siteName={content.siteName}
+                    whyChooseUs={content.whyChooseUs}
+                  />
+
+                  {/* Testimonial endorse panel */}
+                  <Testimonials
+                    testimonials={content.testimonials}
+                    theme={content.theme}
+                    header={content.testimonialsHeader}
+                  />
+
+                  {/* Served Flags badge list */}
+                  <ServedCountries
+                    countries={content.countries}
+                    theme={content.theme}
+                    header={content.countriesHeader}
+                  />
+
+                  {/* Floating inputs contact quote selector */}
+                  <ContactForm
+                    theme={content.theme}
+                    header={content.contactHeader}
+                  />
+
+                  {/* Detailed scalable footer list */}
+                  {/* We pass a navigate wrapper for Footer if needed to navigate back to other paths */}
+                  <Footer
+                    footer={content.footer}
+                    theme={content.theme}
+                    siteName={content.siteName}
+                    setCurrentView={(route) =>
+                      navigate("/" + (route === "home" ? "" : route))
+                    }
+                  />
+                </div>
+              </main>
+
+              {/* Admin CMS Side Panel overlaying the layout smoothly */}
+              {isAdmin && (
+                <div className="xl:fixed xl:right-0 xl:top-20 xl:w-1/3 xl:h-[calc(100vh-80px)] xl:overflow-y-auto bg-slate-950/90 backdrop-blur-3xl border-l border-slate-800/80 shadow-2xl z-40 w-full animate-fade-in order-first xl:order-last pb-20 xl:pb-0">
+                  <Suspense fallback={<CyberLoadingPlaceholder />}>
+                    <AdminPanel
+                      content={content}
+                      setContent={handleUpdateContent}
+                    />
+                  </Suspense>
+                </div>
+              )}
+            </div>
+          }
+        />
+      </Routes>
     </div>
   );
 }

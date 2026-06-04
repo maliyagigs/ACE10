@@ -302,16 +302,6 @@ export const initialContent: AppContent = {
             "id": "fsl5"
           },
           {
-            "label": "Privacy Policy",
-            "url": "#",
-            "id": "fsl6"
-          },
-          {
-            "label": "Terms of Service",
-            "url": "#",
-            "id": "fsl7"
-          },
-          {
             "label": "Request Tech Quote",
             "url": "#contact",
             "id": "fsl8"

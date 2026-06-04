@@ -1,31 +1,36 @@
-import { motion } from 'motion/react';
-import * as Icons from 'lucide-react';
-import { AppContent } from '../types';
+import { motion } from "motion/react";
+import * as Icons from "lucide-react";
+import { AppContent } from "../types";
+import { Link } from "react-router-dom";
 
 interface FooterProps {
-  footer: AppContent['footer'];
-  theme: AppContent['theme'];
+  footer: AppContent["footer"];
+  theme: AppContent["theme"];
   siteName: string;
-  setCurrentView?: (view: 'home' | 'auth' | 'privacy' | 'terms') => void;
+  setCurrentView?: (view: "home" | "auth" | "privacy" | "terms") => void;
 }
 
-export default function Footer({ footer, theme, siteName, setCurrentView }: FooterProps) {
-  
+export default function Footer({
+  footer,
+  theme,
+  siteName,
+  setCurrentView,
+}: FooterProps) {
   const scrollToTop = () => {
-    if (typeof (window as any).__triggerInertiaScroll === 'function') {
+    if (typeof (window as any).__triggerInertiaScroll === "function") {
       (window as any).__triggerInertiaScroll(0);
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const getSocialIcon = (provider: string) => {
     switch (provider.toLowerCase()) {
-      case 'twitter':
+      case "twitter":
         return <Icons.Twitter className="w-5 h-5" />;
-      case 'linkedin':
+      case "linkedin":
         return <Icons.Linkedin className="w-5 h-5" />;
-      case 'github':
+      case "github":
         return <Icons.Github className="w-5 h-5" />;
       default:
         return <Icons.Globe className="w-5 h-5" />;
@@ -37,17 +42,17 @@ export default function Footer({ footer, theme, siteName, setCurrentView }: Foot
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-blue-500/[0.02] filter blur-[100px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        
         {/* Upper section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-16 border-b border-slate-900">
-          
           {/* Main info block */}
           <div className="lg:col-span-4 space-y-6 text-left">
-            <h1 className="text-2xl font-black tracking-tight text-white">{siteName}</h1>
+            <h1 className="text-2xl font-black tracking-tight text-white">
+              {siteName}
+            </h1>
             <p className="text-slate-400 text-sm leading-relaxed max-w-sm">
               {footer.aboutText}
             </p>
-            
+
             {/* Social media connections */}
             {footer.socials && footer.socials.length > 0 && (
               <div className="flex items-center gap-3">
@@ -57,7 +62,10 @@ export default function Footer({ footer, theme, siteName, setCurrentView }: Foot
                     href={social.url}
                     target="_blank"
                     rel="noreferrer"
-                    whileHover={{ scale: 1.15, backgroundColor: theme.secondaryColor }}
+                    whileHover={{
+                      scale: 1.15,
+                      backgroundColor: theme.secondaryColor,
+                    }}
                     className="w-10 h-10 rounded-full border border-slate-800 bg-slate-900/60 flex items-center justify-center text-slate-400 hover:text-white hover:border-transparent transition-colors"
                   >
                     {getSocialIcon(social.provider)}
@@ -77,28 +85,12 @@ export default function Footer({ footer, theme, siteName, setCurrentView }: Foot
                 <ul className="space-y-2.5">
                   {section.links.map((link) => (
                     <li key={link.id}>
-                      {link.label === 'Privacy Policy' ? (
-                        <button
-                          onClick={() => setCurrentView && setCurrentView('privacy')}
-                          className="text-sm text-slate-400 hover:text-white transition-colors text-left"
-                        >
-                          {link.label}
-                        </button>
-                      ) : link.label === 'Terms of Service' ? (
-                        <button
-                          onClick={() => setCurrentView && setCurrentView('terms')}
-                          className="text-sm text-slate-400 hover:text-white transition-colors text-left"
-                        >
-                          {link.label}
-                        </button>
-                      ) : (
-                        <a 
-                          href={link.url} 
-                          className="text-sm text-slate-400 hover:text-white transition-colors"
-                        >
-                          {link.label}
-                        </a>
-                      )}
+                      <a
+                        href={link.url}
+                        className="text-sm text-slate-400 hover:text-white transition-colors"
+                      >
+                        {link.label}
+                      </a>
                     </li>
                   ))}
                 </ul>
@@ -118,31 +110,42 @@ export default function Footer({ footer, theme, siteName, setCurrentView }: Foot
               </li>
               <li className="flex items-center gap-2.5 text-slate-400">
                 <Icons.Phone className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                <a href={`tel:${footer.phone}`} className="hover:text-white transition-colors">
+                <a
+                  href={`tel:${footer.phone}`}
+                  className="hover:text-white transition-colors"
+                >
                   {footer.phone}
                 </a>
               </li>
               <li className="flex items-center gap-2.5 text-slate-400">
                 <Icons.Mail className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                <a href={`mailto:${footer.email}`} className="hover:text-white transition-colors">
+                <a
+                  href={`mailto:${footer.email}`}
+                  className="hover:text-white transition-colors"
+                >
                   {footer.email}
                 </a>
               </li>
             </ul>
           </div>
-
         </div>
 
         {/* Lower section */}
         <div className="pt-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <p className="text-xs text-slate-500">
-            {footer.copyrightText}
-          </p>
+          <p className="text-xs text-slate-500">{footer.copyrightText}</p>
 
           <div className="flex items-center gap-6">
             <ul className="flex items-center gap-6 text-xs text-slate-500">
-              <li><a href="#" className="hover:text-white transition-colors">{footer.legalCookiesLabel || "Legal Cookies"}</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">{footer.securityAuditLabel || "Security Audit"}</a></li>
+              <li>
+                <Link to="/privacy" className="hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-white transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
             </ul>
 
             {/* Back to top with Smooth Scroll support requested by user */}
@@ -156,7 +159,6 @@ export default function Footer({ footer, theme, siteName, setCurrentView }: Foot
             </motion.button>
           </div>
         </div>
-
       </div>
     </footer>
   );
