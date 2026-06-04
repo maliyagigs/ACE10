@@ -195,33 +195,33 @@ export default function App() {
           </span>
         </a>
 
-        {/* Desktop Quick links */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
+        {/* Desktop Quick links - centered in the middle */}
+        <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-300 absolute left-1/2 -translate-x-1/2">
           <a
             href="#services"
             onClick={(e) => scrollToSection("services", e)}
-            className="hover:text-white transition-colors"
+            className="hover:text-white transition-colors duration-200"
           >
             Services
           </a>
           <a
             href="#portfolio"
             onClick={(e) => scrollToSection("portfolio", e)}
-            className="hover:text-white transition-colors"
+            className="hover:text-white transition-colors duration-200"
           >
             Portfolio
           </a>
           <a
             href="#testimonials"
             onClick={(e) => scrollToSection("testimonials", e)}
-            className="hover:text-white transition-colors"
+            className="hover:text-white transition-colors duration-200"
           >
             Testimonials
           </a>
           <a
             href="#contact"
             onClick={(e) => scrollToSection("contact", e)}
-            className="hover:text-white transition-colors"
+            className="hover:text-white transition-colors duration-200 px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-full hover:bg-slate-800"
           >
             Quote Request
           </a>
