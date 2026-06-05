@@ -13,28 +13,8 @@ export const initialContent: AppContent = {
     "headline": "We Build Websites That Grow Your Business",
     "subheadline": "Crafting digital experiences that stand out, drive sales engagement, and scale your brand globally with high-performance responsive engineering.",
     "image": "https://images.unsplash.com/photo-1547082299-de196ea013d6?q=80&w=800&auto=format&fit=crop",
-    "subImages": [
-      {
-        "id": "logo-1",
-        "url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=200&auto=format&fit=crop",
-        "alt": "Partner 1"
-      },
-      {
-        "id": "logo-2",
-        "url": "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=200&auto=format&fit=crop",
-        "alt": "Partner 2"
-      },
-      {
-        "id": "logo-3",
-        "url": "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=200&auto=format&fit=crop",
-        "alt": "Partner 3"
-      }
-    ]
-  },
-  "servicesHeader": {
-    "subTitle": "Service Suite",
-    "title": "Engineering\nDigital Excellence.",
-    "description": "We deploy precision frameworks to scale your infrastructure, optimize conversion lattices, and define market-leading interfaces."
+    "subImages": [],
+    "animationType": "particles"
   },
   "services": [
     {
@@ -42,6 +22,12 @@ export const initialContent: AppContent = {
       "title": "Custom Website Design",
       "description": "Tailor-made, high-conversion vector designs matching your brand voice with meticulous layout perfection.",
       "icon": "Layout"
+    },
+    {
+      "id": "2",
+      "title": "E-commerce Development",
+      "description": "Next-generation WooCommerce and custom commerce systems with ultra-fast secure checkout structures.",
+      "icon": "ShoppingBag"
     },
     {
       "id": "3",
@@ -68,40 +54,6 @@ export const initialContent: AppContent = {
       "icon": "Activity"
     }
   ],
-  "whyChooseUs": {
-    "headline": "Why Hundreds of Leaders Trust",
-    "description": "We operate at the intersection of technological logic and aesthetic brilliance. No mock layout simulations, only state-of-the-art results tailored to your market.",
-    "benefits": [
-      {
-        "id": "b1",
-        "title": "Pristine Pixel Perfection",
-        "description": "We don't settle for templates. Every component is handcrafted from scratch to maintain structural superiority and high-conversion elegance.",
-        "icon": "ShieldAlert"
-      },
-      {
-        "id": "b2",
-        "title": "Optimized Core Web Vitals",
-        "description": "Our engineered sites rank amongst the fastest. We optimize file load weights, image servers, and client caching structures.",
-        "icon": "Gauge"
-      },
-      {
-        "id": "b3",
-        "title": "Adaptive Responsive Fluidity",
-        "description": "Every single page adjusts fluidly from wide displays down to ultra-compact mobile screens without a single layout error.",
-        "icon": "Smartphone"
-      },
-      {
-        "id": "b4",
-        "title": "User-Centered Behavior Labs",
-        "description": "Every CTA, card position, and color emphasis undergoes strict mapping to maximize client lead capture rates.",
-        "icon": "Compass"
-      }
-    ]
-  },
-  "portfolioHeader": {
-    "title": "Our Featured Portfolio Showcase",
-    "description": "Explore high-performance digital systems, custom interactive experiences, and result-oriented software designed to command attention."
-  },
   "portfolio": [
     {
       "id": "p1",
@@ -152,40 +104,8 @@ export const initialContent: AppContent = {
       "category": "Website Design"
     }
   ],
-  "testimonialsHeader": {
-    "title": "Client Success Testimonials",
-    "description": "Leading brands grow because we build systems that generate immediate value and sustained authority."
-  },
-  "testimonials": [
-    {
-      "id": "t1",
-      "name": "Alexander Vane",
-      "company": "CEO, Solaria Tech",
-      "quote": "ACE10 delivered our dashboard in record time. The animated UI has left our investors incredibly impressed. Their engineering standards are second to none.",
-      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop"
-    },
-    {
-      "id": "t2",
-      "name": "Sophia Lindqvist",
-      "company": "Marketing Director, Aura Luxury",
-      "quote": "The bounce rate of our storefront decreased by 40% immediately following the redesigned launch by ACE10. Absolute masters of user experience and visual artistry.",
-      "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop"
-    },
-    {
-      "id": "t3",
-      "name": "Marcus Sterling",
-      "company": "Founder, Zenith SaaS",
-      "quote": "Their attention to performance, motion physics, and clean code was exceptional. Working with ACE10 felt like adding an elite engineering branch to our core startup.",
-      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop"
-    },
-    {
-      "id": "t4",
-      "name": "Elena Rostova",
-      "company": "Creative Partner, Nova Agency",
-      "quote": "We were skeptical about finding an agency that could capture our highly specific aesthetic, but ACE10 exceeded every expectation. An absolute pleasure to iterate with.",
-      "image": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop"
-    }
-  ],
+  "testimonials": [],
+  "quoteInquiries": [],
   "stats": [
     {
       "id": "s1",
@@ -214,16 +134,6 @@ export const initialContent: AppContent = {
   ],
   "countries": [
     {
-      "id": "c1",
-      "code": "US",
-      "name": "USA"
-    },
-    {
-      "id": "c2",
-      "code": "GB",
-      "name": "UK"
-    },
-    {
       "id": "c3",
       "code": "CA",
       "name": "Canada"
@@ -249,22 +159,11 @@ export const initialContent: AppContent = {
       "name": "Germany"
     }
   ],
-  "countriesHeader": {
-    "subTitle": "GLOBAL FOOTPRINT",
-    "title": "Served Countries & Offices",
-    "description": "We operate fully remote digital sprints connecting state-of-the-art websites to elite scale-ups across global centers."
-  },
-  "contactHeader": {
-    "title": "Inquire a Digital Quote",
-    "description": "Brief us regarding your system specs, custom pages, or scale aspirations. Our technical lead responds within one rapid business sprint cycle.",
-    "submitSuccessTitle": "System Logs: Submission Received",
-    "submitSuccessDescription": "Our servers successfully logged your digital profile. A representative of ACE10 will contact you immediately."
-  },
   "footer": {
     "aboutText": "ACE10 crafts premier high-performance digital systems, custom interactive experiences, and result-oriented software designed to help businesses command global attention.",
-    "address": "10 Innovation Boulevard, Tech District, Suite 500",
-    "phone": "+1 (555) 722-1010",
-    "email": "hello@ace10.studio",
+    "address": "ONLINE",
+    "phone": "+94740375253",
+    "email": "chethiyabandara0001@gmail.com",
     "sections": [
       {
         "id": "fs1",
@@ -302,6 +201,16 @@ export const initialContent: AppContent = {
             "id": "fsl5"
           },
           {
+            "label": "Privacy Policy",
+            "url": "#",
+            "id": "fsl6"
+          },
+          {
+            "label": "Terms of Service",
+            "url": "#",
+            "id": "fsl7"
+          },
+          {
             "label": "Request Tech Quote",
             "url": "#contact",
             "id": "fsl8"
@@ -331,9 +240,6 @@ export const initialContent: AppContent = {
         "id": "soc4"
       }
     ],
-    "copyrightText": "© 2026 ACE10 Studio. All rights reserved. Crafting Digital Experiences That Stand Out.",
-    "contactsTitle": "HQ Studio Contacts",
-    "legalCookiesLabel": "Legal Cookies",
-    "securityAuditLabel": "Security Audit"
+    "copyrightText": "© 2026 ACE10 Studio. All rights reserved. Crafting Digital Experiences That Stand Out."
   }
 };

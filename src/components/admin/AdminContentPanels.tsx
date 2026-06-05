@@ -43,6 +43,18 @@ export function AdminHeroWorkspace({ content, updateContent, reorder }: AdminCon
             value={content.hero.image}
             onChange={(val) => updateContent(c => { c.hero.image = val; })}
           />
+          <div>
+            <label className="block text-[10px] font-mono text-slate-500 uppercase font-bold mb-2">Background Animation</label>
+            <select 
+              value={content.hero.animationType}
+              onChange={(e) => updateContent(c => { c.hero.animationType = e.target.value as any; })}
+              className="w-full px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800 text-white text-sm focus:outline-none focus:border-blue-500 transition-all font-mono"
+            >
+              <option value="particles">Particles</option>
+              <option value="gradient">Gradient Flow</option>
+              <option value="none">None</option>
+            </select>
+          </div>
         </AdminControlGroup>
 
         <AdminControlGroup title="Primary Messaging">

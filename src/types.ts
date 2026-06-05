@@ -63,6 +63,16 @@ export interface Benefit {
   icon: string;
 }
 
+export interface QuoteInquiry {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  date: string;
+}
+
+// ... existing interfaces ...
+
 export interface AppContent {
   siteName: string;
   theme: {
@@ -77,6 +87,7 @@ export interface AppContent {
     subheadline: string;
     image: string; // Hero section image (ambient particle effect uses this)
     subImages: HeroImageSub[]; // Images underneath CTA buttons requested by user
+    animationType: 'particles' | 'gradient' | 'none'; // ADDED
   };
   servicesHeader?: {
     subTitle: string;
@@ -112,6 +123,7 @@ export interface AppContent {
     submitSuccessTitle: string;
     submitSuccessDescription: string;
   };
+  quoteInquiries: QuoteInquiry[]; // ADDED
   footer: {
     aboutText: string;
     address: string;

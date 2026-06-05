@@ -136,6 +136,18 @@ export function AdminFooterWorkspace({ content, updateContent }: Omit<AdminConte
              <input value={content.footer.copyrightText} onChange={(e) => updateContent(c => { c.footer.copyrightText = e.target.value; })} className="w-full bg-slate-950 px-4 py-3 rounded-xl border border-slate-800 text-white text-xs font-mono" placeholder="Copyright String" />
            </div>
         </AdminControlGroup>
+        <AdminControlGroup title="Social Media Connections">
+            <div className="grid grid-cols-1 gap-2">
+            {content.footer.socials.map((soc, sIdx) => (
+                <div key={soc.id} className="flex gap-2">
+                    <input value={soc.provider} onChange={(e) => updateContent(c => { c.footer.socials[sIdx].provider = e.target.value; })} className="w-24 bg-slate-900 px-2 py-1.5 rounded text-[10px] text-slate-300 border border-slate-800" placeholder="Provider" />
+                    <input value={soc.url} onChange={(e) => updateContent(c => { c.footer.socials[sIdx].url = e.target.value; })} className="flex-1 bg-slate-900 px-2 py-1.5 rounded text-[10px] text-slate-300 border border-slate-800" placeholder="URL" />
+                    <button onClick={() => updateContent(c => { c.footer.socials.splice(sIdx, 1); })} className="text-red-500/50 hover:text-red-500"><Icons.X size={14}/></button>
+                </div>
+            ))}
+            <button onClick={() => updateContent(c => { c.footer.socials.push({ id: 's-' + Date.now(), provider: 'New', url: '#' }); })} className="text-[10px] uppercase font-mono font-bold text-blue-400 hover:text-blue-300 py-1.5 border border-dashed border-blue-500/20 rounded">+ Add Social Link</button>
+            </div>
+        </AdminControlGroup>
         <AdminControlGroup title="Navigation Columns">
           <div className="space-y-6">
             {content.footer.sections.map((section, sIdx) => (
@@ -143,12 +155,13 @@ export function AdminFooterWorkspace({ content, updateContent }: Omit<AdminConte
                 <input value={section.title} onChange={(e) => updateContent(c => { c.footer.sections[sIdx].title = e.target.value; })} className="bg-transparent font-bold text-white text-sm border-b border-slate-800 w-full pb-1 focus:outline-none" />
                 <div className="grid grid-cols-2 gap-2">
                   {section.links.map((link, lIdx) => (
-                    <div key={link.id} className="flex gap-1">
+                    <div key={link.id} className="flex gap-1 items-center">
                       <input value={link.label} onChange={(e) => updateContent(c => { c.footer.sections[sIdx].links[lIdx].label = e.target.value; })} className="flex-1 bg-slate-900 px-2 py-1.5 rounded text-[10px] text-slate-300 border border-slate-800" />
+                      <input value={link.url} onChange={(e) => updateContent(c => { c.footer.sections[sIdx].links[lIdx].url = e.target.value; })} className="flex-1 bg-slate-900 px-2 py-1.5 rounded text-[10px] text-slate-300 border border-slate-800" placeholder="URL" />
                       <button onClick={() => updateContent(c => { c.footer.sections[sIdx].links.splice(lIdx, 1); })} className="text-red-500/50 hover:text-red-500"><Icons.X size={14}/></button>
                     </div>
                   ))}
-                  <button onClick={() => updateContent(c => { c.footer.sections[sIdx].links.push({ id: 'l-' + Date.now(), label: 'New Link', url: '#' }); })} className="text-[10px] uppercase font-mono font-bold text-blue-400 hover:text-blue-300 py-1.5 border border-dashed border-blue-500/20 rounded">+ Add Link</button>
+                  <button onClick={() => updateContent(c => { c.footer.sections[sIdx].links.push({ id: 'l-' + Date.now(), label: 'New Link', url: '#' }); })} className="text-[10px] uppercase font-mono font-bold text-blue-400 hover:text-blue-300 py-1.5 border border-dashed border-blue-500/20 rounded col-span-2">+ Add Link</button>
                 </div>
               </div>
             ))}

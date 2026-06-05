@@ -11,6 +11,7 @@ import { API_ENDPOINTS } from '../config';
 import { AdminHeroWorkspace, AdminServicesWorkspace, AdminPortfolioWorkspace } from './admin/AdminContentPanels';
 import { AdminStatsWorkspace, AdminTestimonialsWorkspace, AdminCountriesWorkspace, AdminFooterWorkspace } from './admin/AdminMetaPanels';
 import { AdminThemeWorkspace, AdminSyncWorkspace } from './admin/AdminThemeWorkspace';
+import { AdminInquiriesWorkspace } from './admin/AdminInquiriesWorkspace';
 
 interface AdminPanelProps {
   content: AppContent;
@@ -19,7 +20,7 @@ interface AdminPanelProps {
   onClose?: () => void;
 }
 
-type TabType = 'hero' | 'services' | 'portfolio' | 'testimonials' | 'stats' | 'countries' | 'footer' | 'theme' | 'sync';
+type TabType = 'hero' | 'services' | 'portfolio' | 'testimonials' | 'stats' | 'countries' | 'footer' | 'theme' | 'sync' | 'inquiries';
 
 export default function AdminPanel({ content, setContent, user, onClose }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('hero');
@@ -102,6 +103,7 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
     { id: 'countries', label: 'Nodes', icon: Icons.Globe },
     { id: 'footer', label: 'Footer', icon: Icons.HardDrive },
     { id: 'theme', label: 'Aesthetics', icon: Icons.Palette },
+    { id: 'inquiries', label: 'Inquiries', icon: Icons.Mail },
     { id: 'sync', label: 'Production', icon: Icons.CloudLightning },
   ] as const;
 
@@ -177,6 +179,7 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
              {activeTab === 'countries' && <AdminCountriesWorkspace key="countries" content={content} updateContent={updateContent} reorder={reorder} />}
              {activeTab === 'footer' && <AdminFooterWorkspace key="footer" content={content} updateContent={updateContent} />}
              {activeTab === 'theme' && <AdminThemeWorkspace key="theme" content={content} updateContent={updateContent} />}
+             {activeTab === 'inquiries' && <AdminInquiriesWorkspace key="inquiries" content={content} />}
              {activeTab === 'sync' && <AdminSyncWorkspace key="sync" isSyncing={isSyncing} systemStatus={systemStatus} handleForceSync={handleForceSync} handleReset={handleReset} />}
           </AnimatePresence>
         </div>
