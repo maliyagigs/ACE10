@@ -125,11 +125,11 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
   };
 
   return (
-    <div className="min-h-screen pt-28 pb-16 px-4 flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="fixed inset-0 h-screen w-screen bg-[#020617] flex flex-col items-center justify-center overflow-hidden px-4 z-50">
       <div className="absolute top-[25%] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[10%] left-1/3 w-[300px] h-[300px] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="w-full max-w-lg bg-slate-900/60 backdrop-blur-2xl border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative flex flex-col gap-6 animate-fade-in">
+      <div className="w-full max-w-lg bg-slate-900/60 backdrop-blur-2xl border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative flex flex-col gap-6 animate-fade-in max-h-[92vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         
         <button
           onClick={onBackToHome}
