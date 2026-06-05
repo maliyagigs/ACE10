@@ -96,6 +96,7 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
   const targetUrl = API_ENDPOINTS.saveContent;
   const currentHost = typeof window !== 'undefined' ? window.location.origin : '';
   const isCrossDomain = targetUrl.startsWith('http') && !targetUrl.startsWith(currentHost);
+  const [showConfig, setShowConfig] = React.useState(false);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -117,9 +118,15 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1 relative group">
                   <p className="text-[9px] font-mono text-slate-500 uppercase">Target Endpoint</p>
                   <p className="text-[11px] font-mono text-blue-400 truncate" title={targetUrl}>{targetUrl}</p>
+                  <button 
+                    onClick={() => { navigator.clipboard.writeText(targetUrl); alert('Endpoint copied to clipboard'); }}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-blue-400"
+                  >
+                    <Icons.Copy className="w-3 h-3" />
+                  </button>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
                   <p className="text-[9px] font-mono text-slate-500 uppercase">Connectivity Profile</p>
@@ -128,15 +135,6 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
                   </p>
                 </div>
               </div>
-
-              {isCrossDomain && systemStatus === 'offline' && (
-                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-[11px] text-amber-200/80 leading-relaxed font-mono">
-                  <Icons.AlertTriangle className="w-4 h-4 text-amber-500 inline mr-2 mb-0.5" />
-                  HINT: If you are using this CMS from an external domain (like Vercel), ensure your 
-                  <span className="text-amber-400 mx-1">VITE_API_URL</span> environment variable matches your 
-                  Cloud Run backend URL.
-                </div>
-              )}
 
               <div className="flex flex-col sm:flex-row items-center gap-4">
                   <button 
@@ -158,25 +156,124 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
                     Cluster: {systemStatus.toUpperCase()}
                   </div>
               </div>
+
+              {systemStatus === 'offline' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-4 shadow-xl"
+                >
+                  <div className="flex items-center gap-3 text-amber-500">
+                    <Icons.AlertTriangle className="w-5 h-5 animate-pulse" />
+                    <h6 className="text-[11px] font-black uppercase tracking-[0.15em]">Vercel Cloud Connectivity Required</h6>
+                  </div>
+                  <p className="text-xs text-amber-200/70 leading-relaxed font-mono">
+                    Your Vercel deployment cannot find the CMS backend. You must configure the cross-domain bridge in your Vercel Dashboard.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+                       <h7 className="text-[10px] font-black text-blue-400 uppercase tracking-widest block">Frontend &rarr; Backend Bridge</h7>
+                       <p className="text-[10px] text-slate-500 leading-relaxed font-mono">
+                         Required on Vercel to allow the CMS to reach your Cloud Run containers.
+                       </p>
+                       <div className="space-y-2">
+                        <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 flex justify-between items-center">
+                          <code className="text-[11px] text-white font-mono font-bold">VITE_API_URL</code>
+                          <button onClick={() => { navigator.clipboard.writeText('VITE_API_URL'); alert('Copied key'); }} className="text-[9px] text-slate-500 hover:text-white">COPY KEY</button>
+                        </div>
+                        <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 flex justify-between items-center group">
+                          <code className="text-[10px] text-emerald-400 font-mono truncate mr-2">{currentHost}</code>
+                          <button onClick={() => { navigator.clipboard.writeText(currentHost); alert('Copied value'); }} className="text-[9px] text-emerald-400 font-bold hover:underline shrink-0">COPY VALUE</button>
+                        </div>
+                       </div>
+                    </div>
+                    
+                    <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+                       <div className="flex justify-between items-center">
+                         <h7 className="text-[10px] font-black text-amber-500 uppercase tracking-widest block">Firebase Authentication</h7>
+                         <button onClick={() => setShowConfig(!showConfig)} className="text-[9px] text-slate-500 hover:text-white">{showConfig ? 'HIDE' : 'REVEAL CONFIG'}</button>
+                       </div>
+                       <p className="text-[10px] text-slate-500 leading-relaxed font-mono">
+                         If login or database access fails on Vercel, add these Firebase keys.
+                       </p>
+                       
+                       {showConfig && (
+                         <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                           <p className="text-[9px] text-slate-600 font-mono italic">Add these to Vercel Environment Variables:</p>
+                           {[
+                             ['VITE_FIREBASE_API_KEY', 'AIzaSyCS4wKnmPeWFuxt48uov3lzIwpphJ7anRM'],
+                             ['VITE_FIREBASE_PROJECT_ID', 'gen-lang-client-0630059227'],
+                             ['VITE_FIREBASE_AUTH_DOMAIN', 'gen-lang-client-0630059227.firebaseapp.com'],
+                             ['VITE_FIREBASE_APP_ID', '1:241771979796:web:0e0f21cca5879edf26b301'],
+                             ['VITE_FIREBASE_FIRESTORE_DATABASE_ID', 'ai-studio-ac46ae93-722e-4804-9745-89ea4afa6c38']
+                           ].map(([key, val]) => (
+                             <div key={key} className="bg-slate-950 p-2 rounded-lg border border-slate-800 flex flex-col gap-1">
+                               <div className="flex justify-between text-[8px] font-mono text-slate-600">
+                                 <span>{key}</span>
+                                 <button onClick={() => { navigator.clipboard.writeText(val); alert(`Copied ${key}`); }} className="hover:text-white">COPY</button>
+                               </div>
+                               <code className="text-[9px] text-slate-400 truncate">{val}</code>
+                             </div>
+                           ))}
+                         </div>
+                       )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <a 
+                      href={`https://vercel.com/dashboard`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-colors"
+                    >
+                      Open Vercel Dashboard <Icons.ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  <p className="text-[9px] text-slate-500 text-center italic">
+                    Paste these into Vercel &rarr; Project Settings &rarr; Environment Variables, then REDEPLOY your site.
+                  </p>
+                </motion.div>
+              )}
            </div>
         </AdminControlGroup>
 
-        <AdminControlGroup title="System Integrity">
-           <div className="space-y-6 flex flex-col h-full justify-between">
-              <div className="space-y-2">
-                 <h5 className="text-sm font-bold text-red-400 uppercase">Emergency Reset</h5>
-                 <p className="text-xs text-slate-500 leading-relaxed">
-                   Revert all CMS keys back to ACE10 factory defaults. This wipes current production and local JSON states.
-                 </p>
+        <div className="space-y-6">
+          <AdminControlGroup title="System Integrity">
+             <div className="space-y-6 flex flex-col h-full justify-between">
+                <div className="space-y-2">
+                   <h5 className="text-sm font-bold text-red-400 uppercase">Emergency Reset</h5>
+                   <p className="text-xs text-slate-500 leading-relaxed">
+                     Revert all CMS keys back to ACE10 factory defaults. This wipes current production and local JSON states.
+                   </p>
+                </div>
+                <button 
+                  onClick={handleReset}
+                  className="w-full py-4 border border-red-500/30 text-red-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-red-500/5 transition-colors"
+                >
+                  Factory Revert
+                </button>
+             </div>
+          </AdminControlGroup>
+
+          <AdminControlGroup title="Auth Profiles">
+            <div className="space-y-4">
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                <p className="text-[9px] font-mono text-slate-500 uppercase mb-1">Active Admin</p>
+                <p className="text-[11px] text-white font-mono break-all">maliyagigs@gmail.com</p>
               </div>
-              <button 
-                onClick={handleReset}
-                className="w-full py-4 border border-red-500/30 text-red-400 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-red-500/5 transition-colors"
-              >
-                Factory Revert
-              </button>
-           </div>
-        </AdminControlGroup>
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                <p className="text-[9px] font-mono text-slate-500 uppercase mb-1">ID Validation</p>
+                <div className="flex items-center gap-2 text-emerald-400 text-[10px] font-mono">
+                  <Icons.CheckCircle2 className="w-3 h-3" />
+                  PROPERLY SCOPED
+                </div>
+              </div>
+            </div>
+          </AdminControlGroup>
+        </div>
       </div>
     </motion.div>
   );

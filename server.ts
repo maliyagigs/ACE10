@@ -13,36 +13,52 @@ const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json
 let adminApp: any = null;
 let firestoreDb: any = null;
 
-if (fs.existsSync(firebaseConfigPath)) {
-  const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+// 1. Determine config source: Prefer env vars, fallback to JSON file
+let config: any = null;
+
+if (process.env.FIREBASE_PROJECT_ID) {
+  config = {
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID || "(default)"
+  };
+} else if (fs.existsSync(firebaseConfigPath)) {
+  const fileConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+  config = {
+    projectId: fileConfig.projectId,
+    firestoreDatabaseId: fileConfig.firestoreDatabaseId || "(default)"
+  };
+}
+
+if (config) {
   try {
     // 1. Initialize Firebase Admin
     adminApp = initializeApp({
-      projectId: firebaseConfig.projectId,
+      projectId: config.projectId,
     });
     
-    // 2. Clear targeting for the persistent Firestore instance
-    const databaseId = firebaseConfig.firestoreDatabaseId || "(default)";
-    firestoreDb = getFirestore(adminApp, databaseId);
+    // 2. Target the persistent Firestore instance
+    firestoreDb = getFirestore(adminApp, config.firestoreDatabaseId);
     
-    console.log(`[CMS Server] Firebase Admin Initialized: ${firebaseConfig.projectId} [${databaseId}]`);
+    console.log(`[CMS Server] Firebase Admin Initialized: ${config.projectId} [${config.firestoreDatabaseId}]`);
     
     // 3. Warm-up connectivity check
     firestoreDb.collection('cms').doc('latest').get()
       .then((doc: any) => {
-        if (!doc.exists) {
-          console.log("[CMS Server] Warm-up: document 'cms/latest' is ready for initial creation.");
-        } else {
+        if (doc && doc.exists) {
           console.log("[CMS Server] Warm-up: Firestore link verified.");
+        } else {
+          console.log("[CMS Server] Warm-up: Firestore connected (collection ready).");
         }
       })
       .catch((err: any) => {
-        console.warn("[CMS Server] Firestore warm-up warning (Permissions or DB ID mismatch):", err.message);
+        console.warn("[CMS Server] Firestore warm-up warning:", err.message);
       });
 
   } catch (err) {
-    console.error("[CMS Server] Firebase Admin Init Critical Failure:", err);
+    console.error("[CMS Server] Firebase Admin Init Failure:", err);
   }
+} else {
+  console.warn("[CMS Server] No Firebase configuration found (Env or JSON). Sync features will be disabled.");
 }
 
 async function startServer() {
@@ -221,26 +237,37 @@ async function startServer() {
     // Skip logging for OPTIONS as it's handled by CORS middleware
     if (req.method === "OPTIONS") return;
 
-    console.warn(`[CMS Server] Unhandled ${req.method} request to ${req.originalUrl}`);
+    console.warn(`[CMS Server] Unhandled ${req.method} request to ${req.originalUrl} from origin ${req.headers.origin}`);
+    console.warn(`[CMS Server] Headers: ${JSON.stringify(req.headers)}`);
     
     // Check if the route exists but method is wrong
     const knownPostRoutes = ["/api/save-content"];
     const knownGetRoutes = ["/api/get-content", "/api/health"];
     
-    const isSave = knownPostRoutes.some(r => req.originalUrl.includes(r));
-    const isGet = knownGetRoutes.some(r => req.originalUrl.includes(r));
+    // Match base paths without query params or trailing slashes
+    const cleanUrl = req.originalUrl.split('?')[0].replace(/\/$/, '');
+    const isSave = knownPostRoutes.some(r => cleanUrl.includes(r));
+    const isGet = knownGetRoutes.some(r => cleanUrl.includes(r));
 
     if (isSave && req.method !== "POST") {
-      return res.status(405).json({ error: `Method ${req.method} not allowed for production commit. Use POST.` });
+      return res.status(405).json({ 
+        error: `Method ${req.method} not allowed for production commit. Use POST.`,
+        receivedMethod: req.method,
+        target: cleanUrl
+      });
     }
     if (isGet && req.method !== "GET") {
-      return res.status(405).json({ error: `Method ${req.method} not allowed for resource fetch. Use GET.` });
+      return res.status(405).json({ 
+        error: `Method ${req.method} not allowed for resource fetch. Use GET.`,
+        receivedMethod: req.method,
+        target: cleanUrl
+      });
     }
 
     res.status(404).json({ 
       error: `Resource not found: ${req.originalUrl}`,
       method: req.method,
-      hint: "Check your API_BASE_URL configuration."
+      hint: "Check your VITE_API_URL configuration. Ensure it matches your back-end Cloud Run URL exactly."
     });
   });
 
