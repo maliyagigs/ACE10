@@ -18,29 +18,31 @@ export function AdminStatsWorkspace({ content, updateContent, reorder }: AdminCo
       <AdminSectionHeader title="KPI & Stats Counters" icon={Icons.BarChart3} description="Success metrics displayed across the dashboard." />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {content.stats.map((s, idx) => (
-          <AdminControlGroup key={s.id} title={`Metric #${idx + 1}`}>
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="block text-[9px] uppercase font-mono text-slate-500 mb-1">Value</label>
-                  <input type="number" value={s.value} onChange={(e) => updateContent(c => { c.stats[idx].value = parseInt(e.target.value); })} className="w-full bg-slate-950 px-3 py-2 rounded-lg text-white border border-slate-800" />
+          <div key={s.id}>
+            <AdminControlGroup title={`Metric #${idx + 1}`}>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-[9px] uppercase font-mono text-slate-500 mb-1">Value</label>
+                    <input type="number" value={s.value} onChange={(e) => updateContent(c => { c.stats[idx].value = parseInt(e.target.value); })} className="w-full bg-slate-950 px-3 py-2 rounded-lg text-white border border-slate-800" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] uppercase font-mono text-slate-500 mb-1">Suffix</label>
+                    <input type="text" value={s.suffix} onChange={(e) => updateContent(c => { c.stats[idx].suffix = e.target.value; })} className="w-20 bg-slate-950 px-3 py-2 rounded-lg text-white border border-slate-800 text-center font-mono" />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-[9px] uppercase font-mono text-slate-500 mb-1">Suffix</label>
-                  <input type="text" value={s.suffix} onChange={(e) => updateContent(c => { c.stats[idx].suffix = e.target.value; })} className="w-20 bg-slate-950 px-3 py-2 rounded-lg text-white border border-slate-800 text-center font-mono" />
+                  <label className="block text-[9px] uppercase font-mono text-slate-500 mb-1">Descriptor Label</label>
+                  <input type="text" value={s.label} onChange={(e) => updateContent(c => { c.stats[idx].label = e.target.value; })} className="w-full bg-slate-950 px-3 py-2 rounded-lg text-white border border-slate-800" />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button onClick={() => updateContent(c => { c.stats = reorder(c.stats, idx, 'up'); })} className="p-1.5 hover:text-white"><Icons.ChevronLeft className="w-4 h-4" /></button>
+                  <button onClick={() => updateContent(c => { c.stats = reorder(c.stats, idx, 'down'); })} className="p-1.5 hover:text-white"><Icons.ChevronRight className="w-4 h-4" /></button>
+                  <button onClick={() => updateContent(c => { c.stats.splice(idx, 1); })} className="p-1.5 text-red-500/60 hover:text-red-500"><Icons.Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
-              <div>
-                <label className="block text-[9px] uppercase font-mono text-slate-500 mb-1">Descriptor Label</label>
-                <input type="text" value={s.label} onChange={(e) => updateContent(c => { c.stats[idx].label = e.target.value; })} className="w-full bg-slate-950 px-3 py-2 rounded-lg text-white border border-slate-800" />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button onClick={() => updateContent(c => { c.stats = reorder(c.stats, idx, 'up'); })} className="p-1.5 hover:text-white"><Icons.ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={() => updateContent(c => { c.stats = reorder(c.stats, idx, 'down'); })} className="p-1.5 hover:text-white"><Icons.ChevronRight className="w-4 h-4" /></button>
-                <button onClick={() => updateContent(c => { c.stats.splice(idx, 1); })} className="p-1.5 text-red-500/60 hover:text-red-500"><Icons.Trash2 className="w-4 h-4" /></button>
-              </div>
-            </div>
-          </AdminControlGroup>
+            </AdminControlGroup>
+          </div>
         ))}
         <button onClick={() => updateContent(c => { c.stats.push({ id: 'st-' + Date.now(), value: 0, suffix: '+', label: 'New Metric' }); })} className="border-2 border-dashed border-slate-800 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-600 hover:text-slate-400 hover:border-slate-600 transition-all gap-2 group">
            <Icons.Plus className="w-8 h-8 group-hover:scale-125 transition-transform" />

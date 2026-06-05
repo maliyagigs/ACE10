@@ -15,5 +15,6 @@ if (rawUrl) {
 export const API_ENDPOINTS = {
   getContent: `${API_BASE}/api/get-content`,
   saveContent: `${API_BASE}/api/save-content`,
+  submitInquiry: `${API_BASE}/api/submit-inquiry`,
   health: `${API_BASE}/api/health`
 };

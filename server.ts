@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import fs from "fs";
 import cors from "cors";
+import compression from "compression";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
@@ -64,6 +65,9 @@ if (config) {
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  // Use gzip compression for static assets and API payloads
+  app.use(compression());
 
   // 1. Enable strict routing: false makes /route equivalent to /route/
   app.set('strict routing', false);
@@ -237,6 +241,78 @@ async function startServer() {
     } catch (error: any) {
       console.error("[CMS Server Request Error]:", error);
       return res.status(500).json({ error: error.message || "Failed to commit data file update" });
+    }
+  });
+
+  // API Route: Handle visitor contact form/quote inquiries securely
+  apiRouter.post("/submit-inquiry", async (req, res) => {
+    try {
+      const { name, email, company, projectDetails } = req.body;
+      if (!name || !email || !projectDetails) {
+        return res.status(400).json({ error: "Missing required inquiry fields" });
+      }
+
+      const newInquiry = {
+        id: "inq-" + Date.now(),
+        name,
+        email,
+        company: company || "",
+        message: projectDetails,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      };
+
+      console.log(`[CMS Server] Logging incoming inquiry from ${name} (${email})`);
+
+      // 1. Sync to Firestore (Global Database Persistence)
+      if (firestoreDb) {
+        try {
+          const cmsRef = firestoreDb.collection('cms').doc('latest');
+          const docSnapshot = await cmsRef.get();
+          let currentContent: any = {};
+          if (docSnapshot.exists) {
+            currentContent = docSnapshot.data().content || {};
+          }
+          
+          const inquiries = currentContent.quoteInquiries || [];
+          inquiries.unshift(newInquiry); // Insert at beginning (newest first)
+
+          await cmsRef.set({
+            content: {
+              ...currentContent,
+              quoteInquiries: inquiries
+            },
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+          
+          console.log("[CMS Server] Inquiry successfully written to Firestore cms cluster!");
+        } catch (dbErr: any) {
+          console.warn("[CMS Server] Firestore inquiry update failed, falling back to local files:", dbErr.message);
+        }
+      }
+
+      // 2. Local fallback persistent updates
+      if (fs.existsSync(dynamicJsonPath)) {
+        try {
+          const localContent = JSON.parse(fs.readFileSync(dynamicJsonPath, "utf-8"));
+          const inquiries = localContent.quoteInquiries || [];
+          inquiries.unshift(newInquiry);
+          localContent.quoteInquiries = inquiries;
+          fs.writeFileSync(dynamicJsonPath, JSON.stringify(localContent, null, 2), "utf-8");
+
+          // Also overwrite src/data.ts
+          const dataFilePath = path.join(process.cwd(), "src", "data.ts");
+          const fileContent = `import { AppContent } from './types';\n\nexport const initialContent: AppContent = ${JSON.stringify(localContent, null, 2)};\n`;
+          fs.writeFileSync(dataFilePath, fileContent, "utf-8");
+          console.log("[CMS Server] Inquiry written locally to src/data.ts backplanes.");
+        } catch (localErr: any) {
+          console.error("[CMS Server] Local file update during inquiry submission failed:", localErr.message);
+        }
+      }
+
+      return res.json({ success: true, message: "Your inquiry was successfully registered. We will build your product scope promptly." });
+    } catch (err: any) {
+      console.error("[CMS Server] Critical inquiry submission failure:", err);
+      return res.status(500).json({ error: "Internal Server Error: Unable to store incoming prospect inquiry." });
     }
   });
 

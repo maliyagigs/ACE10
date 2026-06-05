@@ -21,6 +21,7 @@
     "@types/animejs": "^3.1.13",
     "@vitejs/plugin-react": "^5.0.4",
     "animejs": "^4.4.1",
+    "compression": "^1.8.1",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
@@ -32,10 +33,12 @@
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-router-dom": "^7.17.0",
+    "recharts": "^3.8.1",
     "vite": "^6.2.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.0",
+    "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",

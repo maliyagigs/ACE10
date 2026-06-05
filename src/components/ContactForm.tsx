@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import * as Icons from 'lucide-react';
 import { AppContent } from '../types';
+import { API_ENDPOINTS } from '../config';
 
 interface ContactFormProps {
   theme: AppContent['theme'];
@@ -16,6 +17,8 @@ export default function ContactForm({ theme, header }: ContactFormProps) {
     projectDetails: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [submissionError, setSubmissionError] = useState('');
 
   // Field focus states to trigger float/draw rules
   const [focusFields, setFocusFields] = useState<Record<string, boolean>>({});
@@ -30,14 +33,37 @@ export default function ContactForm({ theme, header }: ContactFormProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
+    setIsSending(true);
+    setSubmissionError('');
+    try {
+      const response = await fetch(API_ENDPOINTS.submitInquiry, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('The secure gateway was unable to capture your request. Please try again.');
+      }
+
+      setIsSubmitted(true);
       setFormData({ name: '', email: '', company: '', projectDetails: '' });
       setFocusFields({});
-    }, 4000);
+
+      // Auto-clear success message after 6 seconds to restore inquiry form
+      setTimeout(() => {
+        setIsSubmitted(false);
+      }, 6000);
+    } catch (err: any) {
+      console.error('[Inquiry System Error]', err);
+      setSubmissionError(err.message || 'System uplink failed. Check your connection or contact direct support.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const title = header?.title || "Inquire a Digital Quote";
@@ -197,17 +223,29 @@ export default function ContactForm({ theme, header }: ContactFormProps) {
               />
             </div>
 
+            {submissionError && (
+              <div className="p-4 bg-red-950/40 border border-red-500/20 text-red-400 text-sm rounded-xl flex items-start gap-2">
+                <Icons.AlertTriangle className="w-5 h-5 shrink-0" />
+                <span>{submissionError}</span>
+              </div>
+            )}
+
             {/* Button Morph Effect */}
             <div className="flex justify-end pt-4">
               <motion.button
                 type="submit"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                className="px-8 py-4 rounded-full font-bold text-white shadow-lg cursor-pointer flex items-center gap-2 group transition-all duration-300 relative overflow-hidden"
+                disabled={isSending}
+                whileHover={isSending ? {} : { scale: 1.05 }}
+                whileTap={isSending ? {} : { scale: 0.98 }}
+                className={`px-8 py-4 rounded-full font-bold text-white shadow-lg flex items-center gap-2 group transition-all duration-300 relative overflow-hidden ${isSending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 style={{ backgroundColor: theme.accentColor }}
               >
-                <span>Dispatch Tech Request</span>
-                <Icons.Send className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+                <span>{isSending ? 'Transmitting Inbound...' : 'Dispatch Tech Request'}</span>
+                {isSending ? (
+                  <Icons.Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Icons.Send className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+                )}
               </motion.button>
             </div>
 

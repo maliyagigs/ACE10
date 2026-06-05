@@ -12,6 +12,8 @@ import { AdminHeroWorkspace, AdminServicesWorkspace, AdminPortfolioWorkspace } f
 import { AdminStatsWorkspace, AdminTestimonialsWorkspace, AdminCountriesWorkspace, AdminFooterWorkspace } from './admin/AdminMetaPanels';
 import { AdminThemeWorkspace, AdminSyncWorkspace } from './admin/AdminThemeWorkspace';
 import { AdminInquiriesWorkspace } from './admin/AdminInquiriesWorkspace';
+import { AdminDashboardWorkspace } from './admin/AdminDashboardWorkspace';
+import { AdminCRMWorkspace } from './admin/AdminCRMWorkspace';
 
 interface AdminPanelProps {
   content: AppContent;
@@ -20,10 +22,10 @@ interface AdminPanelProps {
   onClose?: () => void;
 }
 
-type TabType = 'hero' | 'services' | 'portfolio' | 'testimonials' | 'stats' | 'countries' | 'footer' | 'theme' | 'sync' | 'inquiries';
+type TabType = 'hero' | 'services' | 'portfolio' | 'testimonials' | 'stats' | 'countries' | 'footer' | 'theme' | 'sync' | 'inquiries' | 'dashboard' | 'crm';
 
 export default function AdminPanel({ content, setContent, user, onClose }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('hero');
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isSyncing, setIsSyncing] = useState(false);
   const [systemStatus, setSystemStatus] = useState<'online' | 'offline' | 'checking'>('checking');
 
@@ -95,6 +97,8 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
   };
 
   const tabs = [
+    { id: 'dashboard', label: 'Monitor', icon: Icons.LayoutDashboard },
+    { id: 'crm', label: 'CRM', icon: Icons.Users },
     { id: 'hero', label: 'Identity', icon: Icons.Layout },
     { id: 'services', label: 'Services', icon: Icons.Layers },
     { id: 'portfolio', label: 'Portfolio', icon: Icons.Briefcase },
@@ -171,6 +175,8 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
       <main className="flex-1 overflow-y-auto p-4 md:p-12 relative h-screen scrollbar-hide pb-24 md:pb-12">
         <div className="max-w-6xl mx-auto">
           <AnimatePresence mode="wait">
+             {activeTab === 'dashboard' && <AdminDashboardWorkspace />}
+             {activeTab === 'crm' && <AdminCRMWorkspace />}
              {activeTab === 'hero' && <AdminHeroWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
              {activeTab === 'services' && <AdminServicesWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
              {activeTab === 'portfolio' && <AdminPortfolioWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
@@ -179,7 +185,7 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
              {activeTab === 'countries' && <AdminCountriesWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
              {activeTab === 'footer' && <AdminFooterWorkspace content={content} updateContent={updateContent} />}
              {activeTab === 'theme' && <AdminThemeWorkspace content={content} updateContent={updateContent} />}
-             {activeTab === 'inquiries' && <AdminInquiriesWorkspace content={content} />}
+             {activeTab === 'inquiries' && <AdminInquiriesWorkspace content={content} updateContent={updateContent} />}
              {activeTab === 'sync' && <AdminSyncWorkspace isSyncing={isSyncing} systemStatus={systemStatus} handleForceSync={handleForceSync} handleReset={handleReset} />}
           </AnimatePresence>
         </div>

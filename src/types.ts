@@ -69,6 +69,7 @@ export interface QuoteInquiry {
   email: string;
   message: string;
   date: string;
+  company?: string;
 }
 
 // ... existing interfaces ...
