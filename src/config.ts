@@ -2,7 +2,9 @@
 // When deploying to external platforms like Vercel, set VITE_API_URL to your Cloud Run endpoint.
 
 const rawUrl = import.meta.env.VITE_API_URL || '';
-export const API_BASE = rawUrl.replace(/\/$/, '');
+// Force HTTPS for all production-bound environments
+const secureUrl = rawUrl.replace(/^http:/, 'https:');
+export const API_BASE = secureUrl.replace(/\/$/, '');
 
 if (rawUrl) {
   console.log(`[ACE10 Config] Using explicit API Base: ${API_BASE}`);

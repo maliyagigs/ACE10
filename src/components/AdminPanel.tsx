@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { auth as firebaseAuth } from '../services/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db, auth as firebaseAuth } from '../services/firebase';
 import { AppContent } from '../types';
 import { initialContent } from '../data';
 import { API_ENDPOINTS } from '../config';
@@ -52,25 +53,16 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
         throw new Error("Unauthorized: Admin privileges required.");
       }
 
-      const idToken = await currentUser.getIdToken();
-      
-      const response = await fetch(API_ENDPOINTS.saveContent, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify(content)
+      // Direct write to Firestore ensures reliability and bypasses CORS/405 redirect issues
+      const cmsRef = doc(db, "cms", "latest");
+      await updateDoc(cmsRef, {
+        content: content,
+        updatedAt: new Date().toISOString()
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Server error: ${response.status}`);
-      }
       
       setTimeout(() => {
         setIsSyncing(false);
-        alert('CMS Synchronized. changes are now live on production cluster.');
+        alert('CMS Synchronized. Changes are now live on production cluster.');
       }, 800);
       
     } catch (err: any) {
