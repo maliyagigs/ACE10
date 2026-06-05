@@ -292,8 +292,26 @@ async function startServer() {
     console.log("[CMS Server] Serving production static files...");
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+    app.get("*", async (req, res) => {
+      const indexPath = path.join(distPath, "index.html");
+      let html = fs.readFileSync(indexPath, "utf8");
+
+      // Get CMS data for meta tags
+      const data = await getContentData();
+      if (data) {
+        const title = `${data.siteName || 'ACE10'} — Crafting Digital Experiences That Stand Out`;
+        const description = data.hero?.subheadline || 'ACE10 provides expert professional services in digital experience crafting, web development, and design.';
+        
+        html = html
+          .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
+          .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${description}" />`)
+          .replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${title}" />`)
+          .replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${description}" />`)
+          .replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${title}" />`)
+          .replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="${description}" />`);
+      }
+      
+      res.send(html);
     });
   }
 

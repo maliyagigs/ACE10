@@ -3,6 +3,7 @@ import { AppContent, QuoteInquiry } from '../../types';
 import * as Icons from 'lucide-react';
 
 interface AdminInquiriesWorkspaceProps {
+  key?: string;
   content: AppContent;
 }
 

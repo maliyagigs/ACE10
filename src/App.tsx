@@ -22,6 +22,7 @@ import ContactForm from "./components/ContactForm";
 import Footer from "./components/Footer";
 import GoogleAuth from "./components/GoogleAuth";
 import LoadingScreen from "./components/LoadingScreen";
+import Sitemaps from "./components/Sitemaps";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsOfService from "./components/TermsOfService";
 
@@ -48,7 +49,7 @@ function CyberLoadingPlaceholder() {
         Initializing Module
       </p>
       <p className="text-[10px] text-slate-550 mt-2 font-mono">
-        Securing telemetry credentials & local schema sync...
+        Setting up your experience...
       </p>
       <div className="mt-6 w-40 h-1 bg-slate-950/60 overflow-hidden rounded-full border border-slate-900/40 relative">
         <div
@@ -286,6 +287,14 @@ export default function App() {
                 onBack={() => navigate("/")}
                 theme={content.theme}
               />
+            </div>
+          }
+        />
+        <Route
+          path="/sitemaps"
+          element={
+            <div className="pt-28 pb-12 px-6">
+              <Sitemaps />
             </div>
           }
         />
