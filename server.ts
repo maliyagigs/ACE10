@@ -70,13 +70,12 @@ async function startServer() {
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "x-user-email"],
-    preflightContinue: false,
-    optionsSuccessStatus: 204
+    credentials: true
   }));
 
   // Logging middleware for API debugging
   app.use("/api/*", (req, res, next) => {
-    console.log(`[CMS API] ${req.method} ${req.originalUrl} | Origin: ${req.headers.origin || 'local'}`);
+    console.log(`[CMS API] ${req.method} ${req.originalUrl} | Protocol: ${req.protocol} | Host: ${req.get('host')}`);
     next();
   });
 
@@ -144,8 +143,11 @@ async function startServer() {
     return null;
   }
 
+  // API Router for clarity
+  const apiRouter = express.Router();
+
   // API Route: Serves updated app configurations dynamically
-  app.get(["/api/get-content", "/api/get-content/", "/api/get-content/:id"], async (req, res) => {
+  apiRouter.get(["/get-content", "/get-content/", "/get-content/:id"], async (req, res) => {
     const data = await getContentData();
     if (data) {
       return res.json(data);
@@ -154,13 +156,13 @@ async function startServer() {
   });
 
   // API Route: Saves updated content back into the workspace's data.ts AND Firestore
-  app.post(["/api/save-content", "/api/save-content/", "/api/save-content/:id"], async (req, res) => {
+  apiRouter.post(["/save-content", "/save-content/", "/save-content/:id"], async (req, res) => {
     try {
       const newContent = req.body;
       const authHeader = req.headers.authorization || "";
       const token = authHeader.replace(/^Bearer /, "");
 
-  // 1. Verify Authorization (Production Strict Mode)
+      // 1. Verify Authorization (Production Strict Mode)
       if (!token) {
         console.warn("[CMS Server] Save attempted without Authorization token.");
         return res.status(401).json({ error: "Authentication required: No token provided." });
@@ -234,48 +236,44 @@ async function startServer() {
   });
 
   // Health endpoint
-  app.get("/api/health", (req, res) => {
+  apiRouter.get("/health", (req, res) => {
     res.json({ status: "healthy", timestamp: new Date().toISOString() });
   });
 
-  // Catch-all API error handler for unmatched methods/paths
-  app.all("/api/*", (req, res) => {
-    // Skip logging for OPTIONS as it's handled by CORS middleware
-    if (req.method === "OPTIONS") return;
+  // Handle all other /api routes with detailed 405/404 messages
+  apiRouter.all("*", (req, res) => {
+    if (req.method === "OPTIONS") return res.sendStatus(204);
 
-    console.warn(`[CMS Server] Unhandled ${req.method} request to ${req.originalUrl} from origin ${req.headers.origin}`);
-    console.warn(`[CMS Server] Headers: ${JSON.stringify(req.headers)}`);
-    
-    // Check if the route exists but method is wrong
-    const knownPostRoutes = ["/api/save-content"];
-    const knownGetRoutes = ["/api/get-content", "/api/health"];
-    
-    // Match base paths without query params or trailing slashes
-    const cleanUrl = req.originalUrl.split('?')[0].replace(/\/$/, '');
-    const isSave = knownPostRoutes.some(r => cleanUrl.includes(r));
-    const isGet = knownGetRoutes.some(r => cleanUrl.includes(r));
+    const fullPath = req.originalUrl;
+    const isSave = fullPath.includes("save-content");
+    const isGet = fullPath.includes("get-content");
 
     if (isSave && req.method !== "POST") {
-      return res.status(405).json({ 
-        error: `Method ${req.method} not allowed for production commit. Use POST.`,
-        receivedMethod: req.method,
-        target: cleanUrl
-      });
-    }
-    if (isGet && req.method !== "GET") {
-      return res.status(405).json({ 
-        error: `Method ${req.method} not allowed for resource fetch. Use GET.`,
-        receivedMethod: req.method,
-        target: cleanUrl
+      return res.status(405).json({
+        error: "Sync Failure: Method Not Allowed",
+        message: `The server received a ${req.method} request to the save endpoint, but only POST is permitted.`,
+        hint: "This often happens if you use 'http' instead of 'https' in VITE_API_URL, causing a redirect that downgrades your POST to a GET. Please ensure your VITE_API_URL starts with https://",
+        details: { method: req.method, path: req.path, protocol: req.protocol }
       });
     }
 
-    res.status(404).json({ 
-      error: `Resource not found: ${req.originalUrl}`,
+    if (isGet && req.method !== "GET") {
+      return res.status(405).json({
+        error: "Fetch Failure: Method Not Allowed",
+        message: `The server received a ${req.method} request to the configuration endpoint, but only GET is permitted.`,
+        details: { method: req.method, path: req.path }
+      });
+    }
+
+    res.status(404).json({
+      error: `Resource not found: ${fullPath}`,
       method: req.method,
-      hint: "Check your VITE_API_URL configuration. Ensure it matches your back-end Cloud Run URL exactly."
+      suggestion: "Check your VITE_API_URL environment variable in Vercel. Ensure it matches your Cloud Run URL correctly with https://"
     });
   });
+
+  // Mount the router
+  app.use("/api", apiRouter);
 
   // Hot-pluggable Vite Development Middleware / Static Production Assets handler
   if (process.env.NODE_ENV !== "production") {
