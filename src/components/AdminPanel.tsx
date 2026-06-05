@@ -177,6 +177,23 @@ export default function AdminPanel({ content, setContent, user }: AdminPanelProp
   // Sync state tracking
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
+  const [systemStatus, setSystemStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+
+  // Heartbeat to ensure CMS backend is reachable
+  React.useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) setSystemStatus('online');
+        else setSystemStatus('offline');
+      } catch (e) {
+        setSystemStatus('offline');
+      }
+    };
+    checkStatus();
+    const interval = setInterval(checkStatus, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, []);
 
   const handleForceSync = async () => {
     setIsSyncing(true);
@@ -275,16 +292,27 @@ export default function AdminPanel({ content, setContent, user }: AdminPanelProp
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <button 
-            disabled={isSyncing}
-            onClick={handleForceSync}
-            className={`text-xs font-mono font-bold px-6 py-3 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 ${
-              isSyncing
-                ? 'bg-slate-800/80 border border-slate-700 text-slate-400 pointer-events-none'
-                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-            }`}
-          >
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            {systemStatus !== 'checking' && (
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-mono font-bold uppercase transition-all ${
+                systemStatus === 'online' 
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                  : 'bg-red-500/10 border-red-500/30 text-red-400 animate-pulse'
+              }`}>
+                <div className={`w-1.5 h-1.5 rounded-full ${systemStatus === 'online' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-red-500'}`} />
+                <span>Backend {systemStatus}</span>
+              </div>
+            )}
+            
+            <button 
+              disabled={isSyncing || systemStatus === 'offline'}
+              onClick={handleForceSync}
+              className={`text-xs font-mono font-bold px-6 py-3 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                isSyncing || systemStatus === 'offline'
+                  ? 'bg-slate-800/80 border border-slate-700 text-slate-500 pointer-events-none'
+                  : 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+              }`}
+            >
             {isSyncing ? (
               <>
                 <Icons.RefreshCw className="w-4 h-4 animate-spin text-blue-400" />

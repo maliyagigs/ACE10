@@ -118,7 +118,7 @@ async function startServer() {
   }
 
   // API Route: Serves updated app configurations dynamically
-  app.get("/api/get-content", async (req, res) => {
+  app.get(["/api/get-content", "/api/get-content/"], async (req, res) => {
     const data = await getContentData();
     if (data) {
       return res.json(data);
@@ -127,7 +127,7 @@ async function startServer() {
   });
 
   // API Route: Saves updated content back into the workspace's data.ts AND Firestore
-  app.post("/api/save-content", async (req, res) => {
+  app.post(["/api/save-content", "/api/save-content/"], async (req, res) => {
     try {
       const newContent = req.body;
       const authHeader = req.headers.authorization || "";
