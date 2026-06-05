@@ -3,6 +3,7 @@ import * as Icons from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AppContent } from '../../types';
 import { AdminSectionHeader, AdminControlGroup } from './AdminCommon';
+import { API_ENDPOINTS } from '../../config';
 
 interface AdminContentPanelProps {
   key?: string;
@@ -92,6 +93,10 @@ export function AdminThemeWorkspace({ content, updateContent }: AdminContentPane
 }
 
 export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, handleReset, key }: { isSyncing: boolean; systemStatus: string; handleForceSync: () => void; handleReset: () => void; key?: string }) {
+  const targetUrl = API_ENDPOINTS.saveContent;
+  const currentHost = typeof window !== 'undefined' ? window.location.origin : '';
+  const isCrossDomain = targetUrl.startsWith('http') && !targetUrl.startsWith(currentHost);
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <AdminSectionHeader title="Deployment & Environment" icon={Icons.CloudLightning} description="Unified production commits and workspace synchronization." />
@@ -110,6 +115,28 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
                    </p>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+                  <p className="text-[9px] font-mono text-slate-500 uppercase">Target Endpoint</p>
+                  <p className="text-[11px] font-mono text-blue-400 truncate" title={targetUrl}>{targetUrl}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+                  <p className="text-[9px] font-mono text-slate-500 uppercase">Connectivity Profile</p>
+                  <p className={`text-[11px] font-mono ${isCrossDomain ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {isCrossDomain ? 'Orchestrated (Cross-Domain)' : 'Local Cluster (Direct)'}
+                  </p>
+                </div>
+              </div>
+
+              {isCrossDomain && systemStatus === 'offline' && (
+                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-[11px] text-amber-200/80 leading-relaxed font-mono">
+                  <Icons.AlertTriangle className="w-4 h-4 text-amber-500 inline mr-2 mb-0.5" />
+                  HINT: If you are using this CMS from an external domain (like Vercel), ensure your 
+                  <span className="text-amber-400 mx-1">VITE_API_URL</span> environment variable matches your 
+                  Cloud Run backend URL.
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row items-center gap-4">
                   <button 
