@@ -305,9 +305,7 @@ export default function App() {
           element={
             <div className="relative flex flex-col xl:flex-row">
               {/* Main App Content - scale down dynamically if admin side-panel is open on desktop */}
-              <main
-                className={`relative transition-all duration-500 ease-in-out origin-top ${isAdmin ? "opacity-50 lg:opacity-100 lg:scale-[0.98] lg:w-[calc(100%-550px)]" : "w-full scale-100"}`}
-              >
+              <main className="relative w-full scale-100">
                 <div className={`${isAdmin ? "pointer-events-none lg:pointer-events-auto" : ""}`}>
                   {/* Hero section */}
                   <Hero
@@ -380,14 +378,15 @@ export default function App() {
                 </div>
               </main>
 
-              {/* Admin CMS Side Panel overlaying the layout smoothly */}
+              {/* Admin CMS Full Screen Overlay */}
               {isAdmin && (
-                <div className="fixed right-0 top-20 w-full lg:w-[550px] h-[calc(100vh-80px)] overflow-y-auto bg-slate-950/95 backdrop-blur-3xl border-l border-slate-800/80 shadow-2xl z-50 animate-fade-in pb-20 lg:pb-0">
+                <div className="fixed inset-0 bg-slate-950 z-[100] animate-in fade-in duration-500 overflow-hidden">
                   <Suspense fallback={<CyberLoadingPlaceholder />}>
                     <AdminPanel
                       content={content}
                       setContent={handleUpdateContent}
                       user={user}
+                      onClose={() => setIsAdmin(false)}
                     />
                   </Suspense>
                 </div>

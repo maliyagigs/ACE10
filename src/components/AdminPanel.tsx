@@ -14,11 +14,12 @@ interface AdminPanelProps {
   content: AppContent;
   setContent: (content: AppContent) => void;
   user: any;
+  onClose?: () => void;
 }
 
 type TabType = 'hero' | 'services' | 'portfolio' | 'testimonials' | 'stats' | 'countries' | 'footer' | 'theme' | 'sync';
 
-export default function AdminPanel({ content, setContent, user }: AdminPanelProps) {
+export default function AdminPanel({ content, setContent, user, onClose }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('hero');
   const [isSyncing, setIsSyncing] = useState(false);
   const [systemStatus, setSystemStatus] = useState<'online' | 'offline' | 'checking'>('checking');
@@ -120,14 +121,25 @@ export default function AdminPanel({ content, setContent, user }: AdminPanelProp
         animate={{ x: 0, opacity: 1 }}
         className="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-900 bg-slate-950 p-6 flex flex-col gap-8 h-auto md:h-screen sticky top-0"
       >
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
-            <Icons.Activity className="text-white w-6 h-6" />
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
+              <Icons.Activity className="text-white w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-glass font-black tracking-widest text-white uppercase">ACE10</h1>
+              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">Central Control</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-glass font-black tracking-widest text-white uppercase">ACE10</h1>
-            <p className="text-[10px] font-mono text-slate-500 uppercase tracking-tighter">Central Control</p>
-          </div>
+          {onClose && (
+            <button 
+              onClick={onClose}
+              className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-all cursor-pointer"
+              title="Close CMS"
+            >
+              <Icons.X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         <nav className="flex flex-col gap-1.5 flex-1 overflow-y-auto scrollbar-hide py-2">
