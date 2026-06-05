@@ -96,6 +96,7 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
   const targetUrl = API_ENDPOINTS.saveContent;
   const currentHost = typeof window !== 'undefined' ? window.location.origin : '';
   const isCrossDomain = targetUrl.startsWith('http') && !targetUrl.startsWith(currentHost);
+  const isMissingApiUrl = !import.meta.env.VITE_API_URL && typeof window !== 'undefined' && !window.location.hostname.includes('run.app');
   const [showConfig, setShowConfig] = React.useState(false);
 
   return (
@@ -120,7 +121,7 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1 relative group">
                   <p className="text-[9px] font-mono text-slate-500 uppercase">Target Endpoint</p>
-                  <p className="text-[11px] font-mono text-blue-400 truncate" title={targetUrl}>{targetUrl}</p>
+                  <p className={`text-[11px] font-mono truncate ${isMissingApiUrl ? 'text-red-400 font-bold' : 'text-blue-400'}`} title={targetUrl}>{targetUrl}</p>
                   <button 
                     onClick={() => { navigator.clipboard.writeText(targetUrl); alert('Endpoint copied to clipboard'); }}
                     className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-blue-400"
@@ -131,23 +132,23 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
                 <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
                   <p className="text-[9px] font-mono text-slate-500 uppercase">Connectivity Profile</p>
                   <p className={`text-[11px] font-mono ${isCrossDomain ? 'text-amber-400' : 'text-emerald-400'}`}>
-                    {isCrossDomain ? 'Orchestrated (Cross-Domain)' : 'Local Cluster (Direct)'}
+                    {isMissingApiUrl ? 'Disconnected (Local Fallback)' : (isCrossDomain ? 'Orchestrated (Cross-Domain)' : 'Local Cluster (Direct)')}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-4">
                   <button 
-                    disabled={isSyncing || systemStatus === 'offline'}
+                    disabled={isSyncing || systemStatus === 'offline' || isMissingApiUrl}
                     onClick={handleForceSync}
                     className={`flex-1 w-full flex items-center justify-center gap-3 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-2xl ${
-                      isSyncing || systemStatus === 'offline'
-                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'
+                      isSyncing || systemStatus === 'offline' || isMissingApiUrl
+                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20 active:scale-95'
                     }`}
                   >
                     {isSyncing ? <Icons.RefreshCw className="w-5 h-5 animate-spin" /> : <Icons.Globe className="w-5 h-5" />}
-                    {isSyncing ? 'Synchronizing Cluster...' : 'Push to Production'}
+                    {isSyncing ? 'Synchronizing Cluster...' : (isMissingApiUrl ? 'Configuration Missing' : 'Push to Production')}
                   </button>
                   <div className={`px-4 py-2 rounded-full border text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-2 ${
                     systemStatus === 'online' ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-red-500/5 border-red-500/20 text-red-400'
@@ -157,18 +158,22 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
                   </div>
               </div>
 
-              {systemStatus === 'offline' && (
+              {(systemStatus === 'offline' || isMissingApiUrl) && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-4 shadow-xl"
+                  className={`p-5 rounded-2xl border space-y-4 shadow-xl ${isMissingApiUrl ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}
                 >
-                  <div className="flex items-center gap-3 text-amber-500">
+                  <div className={`flex items-center gap-3 ${isMissingApiUrl ? 'text-red-500' : 'text-amber-500'}`}>
                     <Icons.AlertTriangle className="w-5 h-5 animate-pulse" />
-                    <h6 className="text-[11px] font-black uppercase tracking-[0.15em]">Vercel Cloud Connectivity Required</h6>
+                    <h6 className="text-[11px] font-black uppercase tracking-[0.15em]">
+                       {isMissingApiUrl ? 'CRITICAL: Bridge Undefined' : 'Vercel Cloud Connectivity Required'}
+                    </h6>
                   </div>
-                  <p className="text-xs text-amber-200/70 leading-relaxed font-mono">
-                    Your Vercel deployment cannot find the CMS backend. You must configure the cross-domain bridge in your Vercel Dashboard.
+                  <p className="text-xs text-slate-300 leading-relaxed font-mono">
+                    {isMissingApiUrl 
+                      ? "Your Vercel deployment cannot reach the Cloud Run backend because VITE_API_URL is missing. This is why you see 405 Errors."
+                      : "Your Vercel deployment cannot find the CMS backend. You must configure the cross-domain bridge in your Vercel Dashboard."}
                   </p>
                   
                   <div className="space-y-4">
@@ -234,8 +239,10 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
                     </a>
                   </div>
 
-                  <p className="text-[9px] text-slate-500 text-center italic">
-                    Paste these into Vercel &rarr; Project Settings &rarr; Environment Variables, then REDEPLOY your site.
+                  <p className="text-[9px] text-slate-500 text-center italic leading-relaxed">
+                    Step 1: Copy the key and value.<br/>
+                    Step 2: Add them to Vercel &rarr; Project Settings &rarr; Environment Variables.<br/>
+                    Step 3: <span className="text-white font-bold underline">REDEPLOY</span> your site for changes to take effect.
                   </p>
                 </motion.div>
               )}

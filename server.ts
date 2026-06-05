@@ -74,6 +74,12 @@ async function startServer() {
     optionsSuccessStatus: 204
   }));
 
+  // Logging middleware for API debugging
+  app.use("/api/*", (req, res, next) => {
+    console.log(`[CMS API] ${req.method} ${req.originalUrl} | Origin: ${req.headers.origin || 'local'}`);
+    next();
+  });
+
   // Handle OPTIONS preflight explicitly
   app.options("*", cors());
 
