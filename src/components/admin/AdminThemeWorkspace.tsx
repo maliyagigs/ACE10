@@ -206,7 +206,9 @@ export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, h
                              ['VITE_FIREBASE_PROJECT_ID', 'gen-lang-client-0630059227'],
                              ['VITE_FIREBASE_AUTH_DOMAIN', 'gen-lang-client-0630059227.firebaseapp.com'],
                              ['VITE_FIREBASE_APP_ID', '1:241771979796:web:0e0f21cca5879edf26b301'],
-                             ['VITE_FIREBASE_FIRESTORE_DATABASE_ID', 'ai-studio-ac46ae93-722e-4804-9745-89ea4afa6c38']
+                             ['VITE_FIREBASE_FIRESTORE_DATABASE_ID', 'ai-studio-ac46ae93-722e-4804-9745-89ea4afa6c38'],
+                             ['VITE_FIREBASE_STORAGE_BUCKET', 'gen-lang-client-0630059227.firebasestorage.app'],
+                             ['VITE_FIREBASE_MESSAGING_SENDER_ID', '241771979796']
                            ].map(([key, val]) => (
                              <div key={key} className="bg-slate-950 p-2 rounded-lg border border-slate-800 flex flex-col gap-1">
                                <div className="flex justify-between text-[8px] font-mono text-slate-600">
