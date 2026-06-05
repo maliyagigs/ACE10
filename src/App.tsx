@@ -387,6 +387,7 @@ export default function App() {
                     <AdminPanel
                       content={content}
                       setContent={handleUpdateContent}
+                      user={user}
                     />
                   </Suspense>
                 </div>

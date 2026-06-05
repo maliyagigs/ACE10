@@ -7,6 +7,7 @@ import { initialContent } from '../data';
 interface AdminPanelProps {
   content: AppContent;
   setContent: (content: AppContent) => void;
+  user: any;
 }
 
 type TabType = 'hero' | 'services' | 'portfolio' | 'testimonials' | 'stats' | 'countries' | 'footer' | 'theme' | 'sync';
@@ -163,7 +164,7 @@ function ImageUploader({ label, value, onChange, placeholder = "https://...", cl
   );
 }
 
-export default function AdminPanel({ content, setContent }: AdminPanelProps) {
+export default function AdminPanel({ content, setContent, user }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('hero');
 
   // Input state creators for new items
@@ -182,14 +183,18 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
     setSyncMessage('Authenticating & Writing CMS configs...');
     
     try {
-      // 1. Get the Firebase Identity Token for secure server-side verification
-      const currentUser = firebaseAuth.currentUser;
-      
-      if (!currentUser) {
+      // 1. Validate session from props first (UI Layer)
+      if (!user) {
         throw new Error("User session not found. Please log in first.");
       }
 
-      if (currentUser.email !== "maliyagigs@gmail.com") {
+      const currentUser = firebaseAuth.currentUser;
+      
+      if (!currentUser) {
+        throw new Error("Firebase runtime session not found. Re-establishing connection...");
+      }
+
+      if (user.email !== "maliyagigs@gmail.com") {
         throw new Error("Unauthorized: Only the admin (maliyagigs@gmail.com) can commit changes to persistent storage.");
       }
 

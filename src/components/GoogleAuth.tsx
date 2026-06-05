@@ -182,56 +182,63 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
     }
   };
 
-  if (!user) {
-    return null;
-  }
-
   return (
     <div className="relative inline-block text-left">
-      {/* User profile menu */}
-      <div className="relative" ref={dropdownRef}>
+      {/* Session Trigger / Profile Menu */}
+      {!user ? (
         <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="flex items-center justify-center p-0.5 rounded-full border border-slate-800 bg-slate-900/60 hover:bg-slate-950 transition-all cursor-pointer hover:scale-105"
+          onClick={() => setModalOpen(true)}
+          className="flex items-center gap-2 text-xs font-mono font-bold px-4 py-3 rounded-full border border-slate-800 bg-slate-900/50 hover:bg-slate-950 text-slate-350 hover:text-white transition-all cursor-pointer group"
         >
-          <img
-            src={user.picture}
-            alt={user.name}
-            className="w-10 h-10 rounded-full border-2 border-blue-500/60 object-cover"
-            referrerPolicy="no-referrer"
-          />
+          <Icons.User className="w-4 h-4 text-blue-500 group-hover:animate-pulse" />
+          <span>SIGN IN / REGISTER</span>
         </button>
+      ) : (
+        /* User profile menu */
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex items-center justify-center p-0.5 rounded-full border border-slate-800 bg-slate-900/60 hover:bg-slate-950 transition-all cursor-pointer hover:scale-105"
+          >
+            <img
+              src={user.picture}
+              alt={user.name}
+              className="w-10 h-10 rounded-full border-2 border-blue-500/60 object-cover"
+              referrerPolicy="no-referrer"
+            />
+          </button>
 
-        {/* User profile dropdown box */}
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2.5 w-67 bg-slate-950/95 border border-slate-900 rounded-2xl shadow-xl backdrop-blur-xl z-[60] p-4 flex flex-col gap-3">
-            <div className="flex items-center gap-3 pb-3 border-b border-slate-900">
-              <img
-                src={user.picture}
-                alt={user.name}
-                className="w-10 h-10 rounded-full border border-blue-500/50 object-cover min-w-[40px]"
-                referrerPolicy="no-referrer"
-              />
-              <div className="truncate">
-                <p className="text-sm font-bold text-white truncate">{user.name}</p>
-                <p className="text-xs text-slate-400 truncate">{user.email}</p>
+          {/* User profile dropdown box */}
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-2.5 w-67 bg-slate-950/95 border border-slate-900 rounded-2xl shadow-xl backdrop-blur-xl z-[60] p-4 flex flex-col gap-3 animate-in fade-in zoom-in duration-200">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-900">
+                <img
+                  src={user.picture}
+                  alt={user.name}
+                  className="w-10 h-10 rounded-full border border-blue-500/50 object-cover min-w-[40px]"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="truncate">
+                  <p className="text-sm font-bold text-white truncate">{user.name}</p>
+                  <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-1">
+                <button
+                  onClick={handleSignOut}
+                  className="px-3 py-1.5 rounded-lg bg-red-950/50 border border-red-900/30 text-red-400 hover:bg-red-900/40 text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Icons.LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
               </div>
             </div>
+          )}
+        </div>
+      )}
 
-            <div className="flex gap-2 justify-end pt-1">
-              <button
-                onClick={handleSignOut}
-                className="px-3 py-1.5 rounded-lg bg-red-950/50 border border-red-900/30 text-red-400 hover:bg-red-900/40 text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                <Icons.LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Unified Auth Form, Register & Google GSI Overlay Modal */}
+      {/* Unified Auth Form Overlay Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-[100] transition-opacity animate-fade-in overflow-y-auto">
           <div 

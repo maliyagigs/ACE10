@@ -14,8 +14,7 @@ service cloud.firestore {
     // Admin check based on hardcoded management email
     function isAdmin() {
       return isSignedIn() && 
-             request.auth.token.email == "maliyagigs@gmail.com" && 
-             request.auth.token.email_verified == true;
+             request.auth.token.email == "maliyagigs@gmail.com";
     }
 
     // Helper to validate incoming payloads (Pillar 2)

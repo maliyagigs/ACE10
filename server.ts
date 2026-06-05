@@ -134,6 +134,11 @@ async function startServer() {
         return res.status(401).json({ error: "Authentication required: No token provided." });
       }
 
+      if (!adminApp) {
+        console.error("[CMS Server] Attempted to save content but Firebase Admin is not initialized.");
+        return res.status(500).json({ error: "Server Configuration Error: Database link is offline." });
+      }
+
       try {
         const decodedToken = await getAuth(adminApp).verifyIdToken(token);
         const email = decodedToken.email;
