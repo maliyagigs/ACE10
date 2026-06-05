@@ -92,7 +92,7 @@ export function AdminThemeWorkspace({ content, updateContent }: AdminContentPane
   );
 }
 
-export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, handleReset, key }: { isSyncing: boolean; systemStatus: string; handleForceSync: () => void; handleReset: () => void; key?: string }) {
+export function AdminSyncWorkspace({ isSyncing, systemStatus, handleForceSync, handleReset }: { isSyncing: boolean; systemStatus: string; handleForceSync: () => void; handleReset: () => void; }) {
   const targetUrl = API_ENDPOINTS.saveContent;
   const currentHost = typeof window !== 'undefined' ? window.location.origin : '';
   const isCrossDomain = targetUrl.startsWith('http') && !targetUrl.startsWith(currentHost);

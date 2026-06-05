@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db, auth as firebaseAuth } from '../services/firebase';
 import { AppContent } from '../types';
 import { initialContent } from '../data';
@@ -55,10 +55,10 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
 
       // Direct write to Firestore ensures reliability and bypasses CORS/405 redirect issues
       const cmsRef = doc(db, "cms", "latest");
-      await updateDoc(cmsRef, {
+      await setDoc(cmsRef, {
         content: content,
         updatedAt: new Date().toISOString()
-      });
+      }, { merge: true });
       
       setTimeout(() => {
         setIsSyncing(false);
