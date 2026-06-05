@@ -162,13 +162,14 @@ async function startServer() {
       // 1. Sync to Firestore (Live Persistance for deployed app)
       if (firestoreDb) {
         try {
+          console.log(`[CMS Server] Saving content for admin: ${req.headers['x-user-email'] || 'Authorized Admin'} [Length: ${JSON.stringify(newContent).length} bytes]`);
           await firestoreDb.collection('cms').doc('latest').set({
             content: newContent,
             updatedAt: new Date().toISOString(),
           }, { merge: false });
           console.log("[CMS Server] Successfully pushed CMS updates to Firestore!");
-        } catch (dbErr) {
-          console.warn("[CMS Server] Firestore save failed (falling back to file-only):", dbErr);
+        } catch (dbErr: any) {
+          console.warn("[CMS Server] Firestore save failed:", dbErr.message);
         }
       }
 

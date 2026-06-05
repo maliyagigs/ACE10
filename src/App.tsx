@@ -112,7 +112,7 @@ export default function App() {
       console.warn("[CMS Sync] Firestore listener constrained or restricted:", err.message);
       
       // Fallback: Attempt one-time REST fetch if real-time fails (e.g. initial setup)
-      const apiBase = window.location.hostname.includes("run.app") || window.location.hostname === "localhost" || window.location.hostname.includes("3000") ? "" : "https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app";
+      const apiBase = ""; 
       fetch(`${apiBase}/api/get-content`)
         .then(res => res.json())
         .then(data => {
