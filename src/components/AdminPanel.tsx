@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { auth as firebaseAuth } from '../services/firebase';
 import { AppContent } from '../types';
 import { initialContent } from '../data';
+import { API_ENDPOINTS } from '../config';
 
 // Modular Workspace Panels
 import { AdminHeroWorkspace, AdminServicesWorkspace, AdminPortfolioWorkspace } from './admin/AdminContentPanels';
@@ -28,7 +29,7 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const res = await fetch('/api/health');
+        const res = await fetch(API_ENDPOINTS.health);
         if (res.ok) setSystemStatus('online');
         else setSystemStatus('offline');
       } catch (e) {
@@ -52,8 +53,8 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
       }
 
       const idToken = await currentUser.getIdToken();
-      // Absolute path to avoid relative directory issues (/admin/api/... vs /api/...)
-      const response = await fetch('/api/save-content', {
+      
+      const response = await fetch(API_ENDPOINTS.saveContent, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

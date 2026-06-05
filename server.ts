@@ -49,12 +49,17 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Enable CORS so the live Vercel site can query config updates from this server
+  // 1. Enable CORS with preflight support
   app.use(cors({ 
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "x-user-email"],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   }));
+
+  // Handle OPTIONS preflight explicitly
+  app.options("*", cors());
 
   // Configure JSON body parser to accept full CMS configurations
   app.use(express.json({ limit: '10mb' }));
@@ -213,21 +218,29 @@ async function startServer() {
 
   // Catch-all API error handler for unmatched methods/paths
   app.all("/api/*", (req, res) => {
+    // Skip logging for OPTIONS as it's handled by CORS middleware
+    if (req.method === "OPTIONS") return;
+
     console.warn(`[CMS Server] Unhandled ${req.method} request to ${req.originalUrl}`);
     
-    // If it's a GET to a POST route or vice versa, return 405
-    if (req.originalUrl.includes("/save-content") && req.method !== "POST") {
-      return res.status(405).json({ error: "Method Not Allowed: save-content requires POST." });
+    // Check if the route exists but method is wrong
+    const knownPostRoutes = ["/api/save-content"];
+    const knownGetRoutes = ["/api/get-content", "/api/health"];
+    
+    const isSave = knownPostRoutes.some(r => req.originalUrl.includes(r));
+    const isGet = knownGetRoutes.some(r => req.originalUrl.includes(r));
+
+    if (isSave && req.method !== "POST") {
+      return res.status(405).json({ error: `Method ${req.method} not allowed for production commit. Use POST.` });
     }
-    if (req.originalUrl.includes("/get-content") && req.method !== "GET") {
-      return res.status(405).json({ error: "Method Not Allowed: get-content requires GET." });
+    if (isGet && req.method !== "GET") {
+      return res.status(405).json({ error: `Method ${req.method} not allowed for resource fetch. Use GET.` });
     }
 
     res.status(404).json({ 
       error: `Resource not found: ${req.originalUrl}`,
       method: req.method,
-      path: req.originalUrl,
-      hint: "The requested API endpoint does not exist or was targeted with an unsupported path suffix."
+      hint: "Check your API_BASE_URL configuration."
     });
   });
 

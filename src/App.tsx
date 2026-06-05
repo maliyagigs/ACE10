@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { initialContent } from "./data";
+import { API_ENDPOINTS } from "./config";
 import { AppContent } from "./types";
 import { StorageService } from "./services/storageService";
 import { db, auth as firebaseAuth } from "./services/firebase";
@@ -112,8 +113,7 @@ export default function App() {
       console.warn("[CMS Sync] Firestore listener constrained or restricted:", err.message);
       
       // Fallback: Attempt one-time REST fetch if real-time fails (e.g. initial setup)
-      const apiBase = ""; 
-      fetch(`${apiBase}/api/get-content`)
+      fetch(API_ENDPOINTS.getContent)
         .then(res => res.json())
         .then(data => {
           if (data && data.siteName) {
