@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Icons from 'lucide-react';
-import { auth as firebaseAuth } from '../services/firebase';
+import { auth as firebaseAuth, db } from '../services/firebase';
 import { 
   signInWithPopup, 
   GoogleAuthProvider, 
@@ -9,6 +9,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile
 } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { StorageService } from '../services/storageService';
 import { GoogleUser } from '../types';
 
@@ -41,6 +42,24 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
   
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Sync user profile to Firestore
+  const syncUserProfile = async (fbUser: any, type: 'google' | 'email') => {
+    try {
+      const userRef = doc(db, 'users', fbUser.uid);
+      await setDoc(userRef, {
+        uid: fbUser.uid,
+        name: fbUser.displayName || (type === 'email' ? fbUser.email.split('@')[0] : 'User'),
+        email: fbUser.email,
+        picture: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
+        authType: type,
+        lastLogin: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch (err) {
+      console.warn("Failed to sync user profile to cloud:", err);
+    }
+  };
+
   // Close dropdown on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -67,6 +86,8 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
         uid: fbUser.uid,
         type: 'google'
       };
+      
+      await syncUserProfile(fbUser, 'google');
       
       setUser(transformedUser);
       StorageService.saveCurrentUser(transformedUser);
@@ -107,6 +128,8 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
         type: 'email'
       };
 
+      await syncUserProfile(fbUser, 'email');
+
       setSuccessMsg("Welcome back! Signing you in...");
       setTimeout(() => {
         setUser(loggedInUser);
@@ -142,6 +165,8 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
         uid: fbUser.uid,
         type: 'email'
       };
+
+      await syncUserProfile(fbUser, 'email');
 
       setSuccessMsg("Account created! Access granted.");
       setTimeout(() => {

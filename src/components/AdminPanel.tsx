@@ -195,16 +195,21 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
 
       const idToken = await currentUser.getIdToken();
 
-      // Use relative path for same-origin requests (AI Studio preview environment)
-      const apiEndpoint = '/api/save-content';
+      // Detection of the correct endpoint: Use relative path for same-origin, 
+      // but fallback to absolute URL if environment detection suggests split infrastructure.
+      const apiBase = window.location.hostname.includes('run.app') || window.location.hostname === 'localhost' || window.location.hostname.includes('3000')
+        ? ''
+        : 'https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app';
 
-      const response = await fetch(apiEndpoint, {
+      const response = await fetch(`${apiBase}/api/save-content`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify(content)
+      }).catch(err => {
+        throw new Error("Could not connect to the backend server. Please ensure you are online and the server is running.");
       });
       
       if (!response.ok) {

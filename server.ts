@@ -130,18 +130,20 @@ async function startServer() {
       const token = authHeader.replace(/^Bearer /, "");
 
       // 1. Verify Authorization (Production Strict Mode)
-      if (token) {
-        try {
-          const decodedToken = await getAuth(adminApp).verifyIdToken(token);
-          const email = decodedToken.email;
-          if (email !== "maliyagigs@gmail.com") {
-             console.warn(`[CMS Server] Unauthorized attempt: ${email}`);
-             return res.status(403).json({ error: "Unauthorized: Admin privileges required." });
-          }
-        } catch (authErr) {
-          console.error("[CMS Server] Token validation failed:", authErr);
-          return res.status(401).json({ error: "Session expired or invalid token." });
+      if (!token) {
+        return res.status(401).json({ error: "Authentication required: No token provided." });
+      }
+
+      try {
+        const decodedToken = await getAuth(adminApp).verifyIdToken(token);
+        const email = decodedToken.email;
+        if (email !== "maliyagigs@gmail.com") {
+           console.warn(`[CMS Server] Unauthorized attempt: ${email}`);
+           return res.status(403).json({ error: "Unauthorized: Admin privileges required." });
         }
+      } catch (authErr) {
+        console.error("[CMS Server] Token validation failed:", authErr);
+        return res.status(401).json({ error: "Session expired or invalid token." });
       }
 
       if (!newContent || typeof newContent !== 'object' || Object.keys(newContent).length === 0) {
