@@ -195,11 +195,9 @@ export default function AdminPanel({ content, setContent }: AdminPanelProps) {
 
       const idToken = await currentUser.getIdToken();
 
-      // Detection of the correct endpoint: Use relative path for same-origin, 
-      // but fallback to absolute URL if environment detection suggests split infrastructure.
-      const apiBase = window.location.hostname.includes('run.app') || window.location.hostname === 'localhost' || window.location.hostname.includes('3000')
-        ? ''
-        : 'https://ais-pre-3bnsn3h3bcrvvg5n3vii3y-730607672030.asia-southeast1.run.app';
+      // Simplified API detection: Uses relative path for same-origin full-stack deployments
+      // which is the standard behavior in AI Studio's container runtime.
+      const apiBase = '';
 
       const response = await fetch(`${apiBase}/api/save-content`, {
         method: 'POST',

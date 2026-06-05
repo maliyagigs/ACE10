@@ -83,9 +83,8 @@ export default function App() {
         setUser(transformedUser);
         StorageService.saveCurrentUser(transformedUser);
       } else {
-        // Fallback to check if a legacy session exists (from potential local-only flow)
-        const savedUser = StorageService.loadCurrentUser();
-        if (savedUser) setUser(savedUser);
+        setUser(null);
+        StorageService.saveCurrentUser(null);
       }
     });
 

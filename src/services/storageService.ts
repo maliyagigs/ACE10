@@ -8,27 +8,20 @@ export interface RegisteredUser {
 }
 
 // Environment variables hooks for future cloud scaling
-const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || '';
-const SUPABASE_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 const CLOUDINARY_URL = (import.meta as any).env?.VITE_CLOUDINARY_URL || '';
 const CLOUDINARY_UPLOAD_PRESET = (import.meta as any).env?.VITE_CLOUDINARY_UPLOAD_PRESET || '';
 
-// Check if cloud configurations are present (Retaining Supabase check for backward compatibility, but adding Firebase primary mode)
-const isCloudEnabled = !!SUPABASE_URL && !!SUPABASE_KEY;
+// Check if cloud configurations are present
 const isCloudStorageEnabled = !!CLOUDINARY_URL;
 
-if (isCloudEnabled) {
-  console.info(`[StorageService] Cloud DB Integration detected: Supabase is online (${SUPABASE_URL})`);
-} else {
-  console.debug(`[StorageService] Running in Firebase/Firestore mode. All production edits are synced to the Cloud Project gen-lang-client-0630059227.`);
-}
+console.debug(`[StorageService] Running in Firebase/Firestore mode. All production edits are synced to Cloud Firestore.`);
 
 /**
  * Robust CMS and Authentication Data Persistor & Sync Engine
  */
 export const StorageService = {
   /**
-   * 1. App Content / CMS Data management
+   * 1. App Content / CMS Data management (Local Cache)
    */
   loadContent(fallbackDefault: AppContent): AppContent {
     try {
@@ -41,7 +34,7 @@ export const StorageService = {
         }
       }
     } catch (e) {
-      console.error('[StorageService] Failing to load cached CMS content from local storage:', e);
+      console.error('[StorageService] Failing to load cached CMS content:', e);
     }
     return fallbackDefault;
   },
@@ -49,67 +42,17 @@ export const StorageService = {
   saveContent(content: AppContent): void {
     try {
       localStorage.setItem('ace10_cms_content', JSON.stringify(content));
-      
-      if (isCloudEnabled) {
-        console.log("[StorageService] Syncing CMS edits to Supabase cluster asynchronously...", content);
-      } else {
-        console.log("[StorageService] CMS State updated locally. Backend proxy will sync to Firestore on Save click.");
-      }
     } catch (e) {
-      console.error('[StorageService] Error serializing CMS dataset to local storage:', e);
+      console.error('[StorageService] Error saving CMS content:', e);
     }
   },
 
   /**
-   * 2. Registered Users (Email + Password) database
-   */
-  loadRegisteredUsers(): RegisteredUser[] {
-    try {
-      const saved = localStorage.getItem('ace10_registered_users');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.error('[StorageService] Error loading credentials list:', e);
-    }
-    return [];
-  },
-
-  saveRegisteredUser(newUser: RegisteredUser): RegisteredUser[] {
-    const list = this.loadRegisteredUsers();
-    
-    // Check if user exists
-    const exists = list.some(u => u.email.toLowerCase().trim() === newUser.email.toLowerCase().trim());
-    if (exists) {
-      throw new Error("An account with this email address already is registered.");
-    }
-
-    list.push(newUser);
-    try {
-      localStorage.setItem('ace10_registered_users', JSON.stringify(list));
-      
-      if (isCloudEnabled) {
-        console.log("[StorageService] Registering new credential set inside cloud users table:", newUser.email);
-        /*
-        fetch(`${SUPABASE_URL}/rest/v1/auth_users`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-          body: JSON.stringify(newUser)
-        }).catch(err => console.error("Supabase user sync error:", err));
-        */
-      }
-    } catch (e) {
-      console.error('[StorageService] Failed writing users database:', e);
-    }
-    return list;
-  },
-
-  /**
-   * 3. Current User Session Manager
+   * 2. Current User Session Manager (Cache Only)
    */
   loadCurrentUser(): GoogleUser | null {
     try {
-      const savedUser = localStorage.getItem('ace10_google_user');
+      const savedUser = localStorage.getItem('ace10_firebase_user_cache');
       if (savedUser) {
         return JSON.parse(savedUser);
       }
@@ -122,51 +65,29 @@ export const StorageService = {
   saveCurrentUser(user: GoogleUser | null): void {
     try {
       if (user) {
-        localStorage.setItem('ace10_google_user', JSON.stringify(user));
+        localStorage.setItem('ace10_firebase_user_cache', JSON.stringify(user));
       } else {
-        localStorage.removeItem('ace10_google_user');
+        localStorage.removeItem('ace10_firebase_user_cache');
       }
     } catch (e) {
-      console.error('[StorageService] Error managing user token storage:', e);
+      console.error('[StorageService] Error saving user session cache:', e);
     }
   },
 
   /**
-   * 4. Google GSI OAuth client-ID configuration
-   */
-  loadGoogleClientId(): string {
-    return '793024535052-2fjl8pdruv3m22oglc3lsiqkqi3qf9cp.apps.googleusercontent.com';
-  },
-
-  saveGoogleClientId(clientId: string): void {
-    // Storage of custom client ID is disabled since it is now fixed
-  },
-
-  /**
-   * 5. Cloud Storage Asset Upload Handler template
-   * If a standard file is provided, this function generates local blob URL as requested.
-   * If Cloudinary is configured, it upload file to Cloudinary dynamically.
+   * 3. Cloud Storage Asset Upload Handler template
    */
   async uploadAssetAndGetUrl(file: File): Promise<string> {
     if (isCloudStorageEnabled) {
-      console.log("[StorageService] Cloud Asset Bucket upload started:", file.name);
       try {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset');
-        
-        // Example dynamic HTTP client post request:
-        // const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_URL}/image/upload`, { method: 'POST', body: formData });
-        // const data = await res.json();
-        // return data.secure_url;
-        
-        console.warn("[StorageService] Cloudinary SDK initialized but requires fine-tuned Cloudinary Upload Preset.");
+        console.warn("[StorageService] Cloudinary integration ready. Configure preset to enable cloud uploads.");
       } catch (err) {
-        console.error("[StorageService] Cloud upload failed, reverting to local session preview.", err);
+        console.error("[StorageService] Cloud upload failed, reverting to local blob.", err);
       }
     }
-
-    // Default: Lightweight session-based Object URLs preventing large Base64 quota crashes
     return URL.createObjectURL(file);
   }
 };

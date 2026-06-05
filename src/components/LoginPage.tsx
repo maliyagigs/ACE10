@@ -1,6 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import * as Icons from 'lucide-react';
-import { StorageService } from '../services/storageService';
+import { useNavigate } from 'react-router-dom';
+import { auth as firebaseAuth, db } from '../services/firebase';
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile
+} from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { GoogleUser } from '../types';
 
 interface LoginPageProps {
@@ -14,25 +23,8 @@ interface LoginPageProps {
   onBackToHome: () => void;
 }
 
-// Client-side JWT decoder for Google Identity tokens
-function decodeJwt(token: string): any {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      window.atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    console.error("JWT decoding failed:", error);
-    return null;
-  }
-}
-
 export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginPageProps) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   
   // Email Password States
@@ -40,221 +32,100 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Feedback states
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const clientId = "793024535052-2fjl8pdruv3m22oglc3lsiqkqi3qf9cp.apps.googleusercontent.com";
-  const [gsiLoaded, setGsiLoaded] = useState(false);
-  const btnContainerRef = useRef<HTMLDivElement>(null);
-
-  // Dynamically load Google GSI client library script
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    if (document.getElementById('google-gsi-client-login-page')) {
-      setGsiLoaded(true);
-      return;
+  // Sync user profile to Firestore
+  const syncUserProfile = async (fbUser: any, type: 'google' | 'email') => {
+    try {
+      const userRef = doc(db, 'users', fbUser.uid);
+      await setDoc(userRef, {
+        uid: fbUser.uid,
+        name: fbUser.displayName || (type === 'email' ? fbUser.email.split('@')[0] : 'User'),
+        email: fbUser.email,
+        picture: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
+        authType: type,
+        lastLogin: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch (err) {
+      console.warn("Failed to sync user profile to cloud:", err);
     }
-
-    const script = document.createElement('script');
-    script.id = 'google-gsi-client-login-page';
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      setGsiLoaded(true);
-    };
-    script.onerror = () => {
-      console.error("Failed loading Google Identity Services client script on standalone login page.");
-    };
-    document.head.appendChild(script);
-  }, []);
-
-  // Initialize and Render Google Sign-in buttons
-  useEffect(() => {
-    if (!gsiLoaded || !clientId || user) return;
-
-    const timer = setTimeout(() => {
-      try {
-        const handleCredentialResponse = (response: any) => {
-          const decoded = decodeJwt(response.credential);
-          if (decoded) {
-            const transformedUser: GoogleUser = {
-              name: decoded.name || 'Google User',
-              email: decoded.email || '',
-              picture: decoded.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop',
-              sub: decoded.sub,
-              type: 'google'
-            };
-            setUser(transformedUser);
-            StorageService.saveCurrentUser(transformedUser);
-            setSuccessMsg("Logged in successfully with Google!");
-            setTimeout(() => {
-              onBackToHome();
-            }, 1000);
-          }
-        };
-
-        // @ts-ignore
-        const google = window.google;
-        if (google && google.accounts && google.accounts.id) {
-          google.accounts.id.initialize({
-            client_id: clientId,
-            callback: handleCredentialResponse,
-            auto_select: false,
-          });
-
-          const btnElement = document.getElementById('standalone-google-button-container');
-          if (btnElement) {
-            google.accounts.id.renderButton(
-              btnElement,
-              { 
-                theme: 'filled_black', 
-                size: 'large', 
-                shape: 'pill',
-                width: 320,
-                text: 'signin_with'
-              }
-            );
-          }
-        }
-      } catch (err) {
-        console.error("Error setting up Google Auth script inside login page:", err);
-      }
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [gsiLoaded, clientId, user, activeTab]);
-
-  // Email Sign-In handler
-  const handleEmailSignIn = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg(null);
-    setSuccessMsg(null);
-
-    if (!email.trim() || !password) {
-      setErrorMsg("Please enter both email and password.");
-      return;
-    }
-
-    const registeredUsers = StorageService.loadRegisteredUsers();
-
-    const foundUser = registeredUsers.find(
-      (u) => u.email.toLowerCase().trim() === email.toLowerCase().trim()
-    );
-
-    if (!foundUser) {
-      setErrorMsg("No account found with this email. Please check your credentials or click \"Create Account\"!");
-      return;
-    }
-
-    if (foundUser.password !== password) {
-      setErrorMsg("Incorrect password. Please try again.");
-      return;
-    }
-
-    const loggedInUser: GoogleUser = {
-      name: foundUser.name,
-      email: foundUser.email,
-      picture: foundUser.picture || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop`,
-      type: 'email'
-    };
-
-    setSuccessMsg("Success! Welcome back, redirecting you to your workspace...");
-    setTimeout(() => {
-      setUser(loggedInUser);
-      StorageService.saveCurrentUser(loggedInUser);
-      onBackToHome();
-      setEmail('');
-      setPassword('');
-      setSuccessMsg(null);
-    }, 1000);
   };
 
-  // Email Sign-Up handler
-  const handleEmailSignUp = (e: React.FormEvent) => {
+  const handleGoogleSignIn = async () => {
+    setErrorMsg(null);
+    setIsProcessing(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(firebaseAuth, provider);
+      await syncUserProfile(result.user, 'google');
+      setSuccessMsg("Logged in successfully with Google!");
+      setTimeout(() => {
+        onBackToHome();
+      }, 1000);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to authenticate with Google.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
-    setSuccessMsg(null);
-
-    if (!name.trim()) {
-      setErrorMsg("Full Name is required.");
-      return;
-    }
-    if (!email.trim() || !email.includes('@')) {
-      setErrorMsg("Please enter a valid email address.");
-      return;
-    }
-    if (password.length < 6) {
-      setErrorMsg("Password must be at least 6 characters long.");
-      return;
-    }
-
-    const registeredUsers = StorageService.loadRegisteredUsers();
-
-    const duplicate = registeredUsers.some(
-      (u) => u.email.toLowerCase().trim() === email.toLowerCase().trim()
-    );
-
-    if (duplicate) {
-      setErrorMsg("An account with this email address already exists. Try signing in.");
-      return;
-    }
-
-    const avatarSeed = Math.floor(Math.random() * 100);
-    const pictures = [
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop"
-    ];
-    const chosenPicture = pictures[avatarSeed % pictures.length];
-
-    const newUser = {
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      password: password,
-      picture: chosenPicture
-    };
+    setIsProcessing(true);
 
     try {
-      StorageService.saveRegisteredUser(newUser);
+      const result = await signInWithEmailAndPassword(firebaseAuth, email, password);
+      await syncUserProfile(result.user, 'email');
+      setSuccessMsg("Welcome back! Redirecting...");
+      setTimeout(() => {
+        onBackToHome();
+      }, 1000);
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed creating credentials.");
-      return;
+      setErrorMsg(err.message || "Invalid credentials.");
+    } finally {
+      setIsProcessing(false);
     }
+  };
 
-    const loggedInUser: GoogleUser = {
-      name: newUser.name,
-      email: newUser.email,
-      picture: newUser.picture,
-      type: 'email'
-    };
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setIsProcessing(true);
 
-    setSuccessMsg("Account created! Logging you in...");
-    setTimeout(() => {
-      setUser(loggedInUser);
-      StorageService.saveCurrentUser(loggedInUser);
-      onBackToHome();
-      setName('');
-      setEmail('');
-      setPassword('');
-      setSuccessMsg(null);
-    }, 1200);
+    try {
+      const result = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+      const fbUser = result.user;
+      
+      await updateProfile(fbUser, {
+        displayName: name,
+        photoURL: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop`
+      });
+
+      await syncUserProfile(fbUser, 'email');
+      setSuccessMsg("Account created! Access granted.");
+      setTimeout(() => {
+        onBackToHome();
+      }, 1200);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to create account.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <div className="min-h-screen pt-28 pb-16 px-4 flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Background radial soft light gradient */}
       <div className="absolute top-[25%] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[10%] left-1/3 w-[300px] h-[300px] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* Main card box with high craftsmanship */}
       <div className="w-full max-w-lg bg-slate-900/60 backdrop-blur-2xl border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative flex flex-col gap-6 animate-fade-in">
         
-        {/* Back Link */}
         <button
           onClick={onBackToHome}
           className="self-start text-xs font-mono text-slate-400 hover:text-white transition-all flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-slate-950/40 border border-slate-900 cursor-pointer"
@@ -263,51 +134,36 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
           <span>Back to Home</span>
         </button>
 
-        {/* Title Display */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-glass text-white tracking-wider uppercase">
             Access Portal
           </h1>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Securely sign in to start your custom engineering projects, manage milestones, and request immediate premium support.
+            Securely sign in to manage your digital infrastructure and request premium engineering support.
           </p>
         </div>
 
-        {/* Dynamic Sliding Tabs */}
         <div className="grid grid-cols-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-850/80">
           <button
             type="button"
-            onClick={() => {
-              setActiveTab('signin');
-              setErrorMsg(null);
-              setSuccessMsg(null);
-            }}
+            onClick={() => { setActiveTab('signin'); setErrorMsg(null); }}
             className={`py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all relative cursor-pointer ${
-              activeTab === 'signin' 
-                ? 'bg-slate-900 text-white shadow' 
-                : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'signin' ? 'bg-slate-900 text-white shadow' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Sign In
           </button>
           <button
             type="button"
-            onClick={() => {
-              setActiveTab('signup');
-              setErrorMsg(null);
-              setSuccessMsg(null);
-            }}
+            onClick={() => { setActiveTab('signup'); setErrorMsg(null); }}
             className={`py-3 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all relative cursor-pointer ${
-              activeTab === 'signup' 
-                ? 'bg-slate-900 text-white shadow' 
-                : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'signup' ? 'bg-slate-900 text-white shadow' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Create Account
           </button>
         </div>
 
-        {/* Feedbacks */}
         {errorMsg && (
           <div className="bg-red-950/50 border border-red-900/30 text-red-400 p-4 rounded-xl text-xs flex items-start gap-2.5 animate-pulse leading-relaxed">
             <Icons.AlertOctagon className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
@@ -322,25 +178,14 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
           </div>
         )}
 
-        {/* Authentication Interactive Form */}
-        <form 
-          onSubmit={activeTab === 'signin' ? handleEmailSignIn : handleEmailSignUp} 
-          className="space-y-4"
-        >
+        <form onSubmit={activeTab === 'signin' ? handleEmailSignIn : handleEmailSignUp} className="space-y-4">
           {activeTab === 'signup' && (
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-mono text-slate-450 uppercase tracking-widest font-extrabold px-1">
-                Full Name
-              </label>
+              <label className="block text-[11px] font-mono text-slate-400 uppercase tracking-widest font-extrabold px-1">Full Name</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
-                  <Icons.User className="w-4 h-4" />
-                </span>
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"><Icons.User className="w-4 h-4" /></span>
                 <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  type="text" required value={name} onChange={(e) => setName(e.target.value)}
                   placeholder="Maliya Gigs"
                   className="w-full bg-slate-950 border border-slate-850 focus:border-blue-500 rounded-xl pl-10 pr-4 py-3.5 text-xs sm:text-sm text-slate-100 placeholder:text-slate-700 outline-none transition"
                 />
@@ -349,18 +194,11 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-mono text-slate-455 uppercase tracking-widest font-extrabold px-1">
-              Email Address
-            </label>
+            <label className="block text-[11px] font-mono text-slate-400 uppercase tracking-widest font-extrabold px-1">Email Address</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
-                <Icons.Mail className="w-4 h-4" />
-              </span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"><Icons.Mail className="w-4 h-4" /></span>
               <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
                 className="w-full bg-slate-950 border border-slate-850 focus:border-blue-500 rounded-xl pl-10 pr-4 py-3.5 text-xs sm:text-sm text-slate-100 placeholder:text-slate-700 outline-none transition"
               />
@@ -368,71 +206,53 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-mono text-slate-455 uppercase tracking-widest font-extrabold px-1 animate-pulse">
-              {activeTab === 'signup' ? 'Password (Min 6 characters)' : 'Password'}
-            </label>
+            <label className="block text-[11px] font-mono text-slate-400 uppercase tracking-widest font-extrabold px-1">Password</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
-                <Icons.Lock className="w-4 h-4" />
-              </span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"><Icons.Lock className="w-4 h-4" /></span>
               <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-slate-950 border border-slate-850 focus:border-blue-500 rounded-xl pl-10 pr-10 py-3.5 text-xs sm:text-sm text-slate-100 placeholder:text-slate-700 outline-none transition"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer">
                 {showPassword ? <Icons.EyeOff className="w-4 h-4" /> : <Icons.Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
           <button
-            type="submit"
-            className="w-full py-4 rounded-xl font-bold text-xs uppercase tracking-wider text-white shadow-lg transition-all duration-300 transform active:scale-95 cursor-pointer relative overflow-hidden flex items-center justify-center gap-1.5"
+            type="submit" disabled={isProcessing}
+            className="w-full py-4 rounded-xl font-bold text-xs uppercase tracking-wider text-white shadow-lg transition-all duration-300 transform active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
             style={{ 
               background: activeTab === 'signin' 
                 ? `linear-gradient(to right, ${theme.secondaryColor}, ${theme.accentColor})`
                 : `linear-gradient(to right, #10b981, #059669)` 
             }}
           >
-            <span>{activeTab === 'signin' ? 'Sign In' : 'Create Account'}</span>
+            {isProcessing ? <Icons.Loader2 className="w-4 h-4 animate-spin" /> : <span>{activeTab === 'signin' ? 'Sign In' : 'Create Account'}</span>}
             <Icons.ChevronRight className="w-4 h-4" />
           </button>
         </form>
 
-        {/* OR Spacer */}
         <div className="relative flex py-1 items-center text-xs">
           <div className="flex-grow border-t border-slate-850"></div>
-          <span className="flex-shrink mx-4 text-slate-550 font-mono text-[10px] font-bold uppercase tracking-wider">or integrate google</span>
+          <span className="flex-shrink mx-4 text-slate-500 font-mono text-[10px] font-bold uppercase tracking-wider">or sign in with</span>
           <div className="flex-grow border-t border-slate-850"></div>
         </div>
 
-        {/* Google Authentication Section */}
-        <div className="space-y-3">
-          <div className="flex flex-col items-center justify-center py-5 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40 gap-3">
-            {clientId ? (
-              <div className="flex flex-col items-center gap-2">
-                <div id="standalone-google-button-container" className="min-h-[44px]" />
-              </div>
-            ) : (
-              <div className="text-center p-3 space-y-1.5">
-                <Icons.Lock className="w-6 h-6 text-slate-600 mx-auto" />
-                <p className="text-xs text-slate-400 font-bold">Standard Google OAuth bypass available</p>
-                <p className="text-[10px] text-slate-550 max-w-[320px]">
-                  Provide a Google OAuth Client ID below to display the official custom interactive container iframe.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-        </div>
+        <button
+          type="button" onClick={handleGoogleSignIn} disabled={isProcessing}
+          className="w-full flex items-center justify-center gap-3 py-3 bg-white hover:bg-slate-50 text-slate-900 rounded-xl font-bold text-xs uppercase tracking-wide transition-all border border-slate-200 shadow-sm disabled:opacity-50 cursor-pointer"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Google Authentication</span>
+        </button>
       </div>
+    </div>
   );
 }
