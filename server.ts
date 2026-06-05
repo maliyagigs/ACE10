@@ -118,7 +118,7 @@ async function startServer() {
   }
 
   // API Route: Serves updated app configurations dynamically
-  app.get(["/api/get-content", "/api/get-content/"], async (req, res) => {
+  app.get(["/api/get-content", "/api/get-content/", "/api/get-content/:id"], async (req, res) => {
     const data = await getContentData();
     if (data) {
       return res.json(data);
@@ -127,7 +127,7 @@ async function startServer() {
   });
 
   // API Route: Saves updated content back into the workspace's data.ts AND Firestore
-  app.post(["/api/save-content", "/api/save-content/"], async (req, res) => {
+  app.post(["/api/save-content", "/api/save-content/", "/api/save-content/:id"], async (req, res) => {
     try {
       const newContent = req.body;
       const authHeader = req.headers.authorization || "";
@@ -214,10 +214,20 @@ async function startServer() {
   // Catch-all API error handler for unmatched methods/paths
   app.all("/api/*", (req, res) => {
     console.warn(`[CMS Server] Unhandled ${req.method} request to ${req.originalUrl}`);
-    res.status(405).json({ 
-      error: `Method ${req.method} not allowed for this endpoint.`,
+    
+    // If it's a GET to a POST route or vice versa, return 405
+    if (req.originalUrl.includes("/save-content") && req.method !== "POST") {
+      return res.status(405).json({ error: "Method Not Allowed: save-content requires POST." });
+    }
+    if (req.originalUrl.includes("/get-content") && req.method !== "GET") {
+      return res.status(405).json({ error: "Method Not Allowed: get-content requires GET." });
+    }
+
+    res.status(404).json({ 
+      error: `Resource not found: ${req.originalUrl}`,
+      method: req.method,
       path: req.originalUrl,
-      hint: "Check that you are calling /api/save-content using POST."
+      hint: "The requested API endpoint does not exist or was targeted with an unsupported path suffix."
     });
   });
 
