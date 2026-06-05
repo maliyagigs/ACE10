@@ -50,7 +50,11 @@ async function startServer() {
   const PORT = 3000;
 
   // Enable CORS so the live Vercel site can query config updates from this server
-  app.use(cors({ origin: "*" }));
+  app.use(cors({ 
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+  }));
 
   // Configure JSON body parser to accept full CMS configurations
   app.use(express.json({ limit: '10mb' }));
@@ -129,8 +133,9 @@ async function startServer() {
       const authHeader = req.headers.authorization || "";
       const token = authHeader.replace(/^Bearer /, "");
 
-      // 1. Verify Authorization (Production Strict Mode)
+  // 1. Verify Authorization (Production Strict Mode)
       if (!token) {
+        console.warn("[CMS Server] Save attempted without Authorization token.");
         return res.status(401).json({ error: "Authentication required: No token provided." });
       }
 
@@ -144,22 +149,27 @@ async function startServer() {
         const email = decodedToken.email;
         const uid = decodedToken.uid;
         
+        // Expert check: Handle both known admin account and potential legacy prompt UID
         const isAuthorized = email === "maliyagigs@gmail.com" || uid === "iksKSWvbtSbHCDglRJAwENbSYUx1";
         
         if (!isAuthorized) {
-           console.warn(`[CMS Server] Unauthorized attempt: ${email} (${uid})`);
-           return res.status(403).json({ error: "Unauthorized: Admin privileges required." });
+           console.warn(`[CMS Server] Forbidden save attempt from: ${email} (${uid})`);
+           return res.status(403).json({ error: "Unauthorized: Admin privileges required to commit production changes." });
         }
-      } catch (authErr) {
-        console.error("[CMS Server] Token validation failed:", authErr);
-        return res.status(401).json({ error: "Session expired or invalid token." });
+      } catch (authErr: any) {
+        console.error("[CMS Server] Token validation yielded error:", authErr.message);
+        return res.status(401).json({ error: "Session revalidation failed. Please logout and log back in." });
       }
 
+      // 2. Resource Validation
       if (!newContent || typeof newContent !== 'object' || Object.keys(newContent).length === 0) {
-        return res.status(400).json({ error: "Invalid CMS configuration body" });
+        console.warn("[CMS Server] Rejected empty or malformed payload.");
+        return res.status(400).json({ error: "Invalid CMS configuration body provided." });
       }
 
-      // 1. Sync to Firestore (Live Persistance for deployed app)
+      console.log(`[CMS Server] Processing valid save request from authorized admin [${JSON.stringify(newContent).length} bytes]`);
+
+      // 3. Sync to Firestore (Global Real-time Persistence)
       if (firestoreDb) {
         try {
           console.log(`[CMS Server] Saving content for admin: ${req.headers['x-user-email'] || 'Authorized Admin'} [Length: ${JSON.stringify(newContent).length} bytes]`);
@@ -199,6 +209,16 @@ async function startServer() {
   // Health endpoint
   app.get("/api/health", (req, res) => {
     res.json({ status: "healthy", timestamp: new Date().toISOString() });
+  });
+
+  // Catch-all API error handler for unmatched methods/paths
+  app.all("/api/*", (req, res) => {
+    console.warn(`[CMS Server] Unhandled ${req.method} request to ${req.originalUrl}`);
+    res.status(405).json({ 
+      error: `Method ${req.method} not allowed for this endpoint.`,
+      path: req.originalUrl,
+      hint: "Check that you are calling /api/save-content using POST."
+    });
   });
 
   // Hot-pluggable Vite Development Middleware / Static Production Assets handler
