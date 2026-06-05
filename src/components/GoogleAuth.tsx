@@ -189,16 +189,8 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
 
   return (
     <div className="relative inline-block text-left">
-      {/* Session Trigger / Profile Menu */}
-      {!user ? (
-        <button
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 text-xs font-mono font-bold px-4 py-3 rounded-full border border-slate-800 bg-slate-900/50 hover:bg-slate-950 text-slate-350 hover:text-white transition-all cursor-pointer group"
-        >
-          <Icons.User className="w-4 h-4 text-blue-500 group-hover:animate-pulse" />
-          <span>SIGN IN / REGISTER</span>
-        </button>
-      ) : (
+      {/* Session Trigger / Profile Menu Removed */}
+      {user && (
         /* User profile menu */
         <div className="relative" ref={dropdownRef}>
           <button

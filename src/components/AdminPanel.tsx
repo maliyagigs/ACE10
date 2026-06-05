@@ -142,7 +142,7 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer group ${
+              className={`${activeTab === tab.id ? 'hidden' : 'flex'} items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer group ${
                 activeTab === tab.id 
                   ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/10' 
                   : 'text-slate-500 hover:text-white hover:bg-slate-900/50'

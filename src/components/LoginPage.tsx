@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { GoogleUser } from '../types';
+import { getAuthErrorMessage } from '../services/authUtils';
 
 interface LoginPageProps {
   theme: {
@@ -91,7 +92,7 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
         onBackToHome();
       }, 1000);
     } catch (err: any) {
-      setErrorMsg(err.message || "Invalid credentials.");
+      setErrorMsg(getAuthErrorMessage(err.code));
     } finally {
       setIsProcessing(false);
     }
@@ -117,7 +118,7 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
         onBackToHome();
       }, 1200);
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to create account.");
+      setErrorMsg(getAuthErrorMessage(err.code));
     } finally {
       setIsProcessing(false);
     }
