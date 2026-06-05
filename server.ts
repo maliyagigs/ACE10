@@ -142,8 +142,12 @@ async function startServer() {
       try {
         const decodedToken = await getAuth(adminApp).verifyIdToken(token);
         const email = decodedToken.email;
-        if (email !== "maliyagigs@gmail.com") {
-           console.warn(`[CMS Server] Unauthorized attempt: ${email}`);
+        const uid = decodedToken.uid;
+        
+        const isAuthorized = email === "maliyagigs@gmail.com" || uid === "iksKSWvbtSbHCDglRJAwENbSYUx1";
+        
+        if (!isAuthorized) {
+           console.warn(`[CMS Server] Unauthorized attempt: ${email} (${uid})`);
            return res.status(403).json({ error: "Unauthorized: Admin privileges required." });
         }
       } catch (authErr) {

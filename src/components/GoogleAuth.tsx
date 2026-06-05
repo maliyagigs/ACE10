@@ -76,6 +76,11 @@ export default function GoogleAuth({ theme, modalOpen, setModalOpen, user, setUs
     setIsProcessing(true);
     try {
       const provider = new GoogleAuthProvider();
+      // Ensure the specific Web Client ID is linked for cross-origin consistency
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        client_id: '241771979796-o026825m3jg3m7lau7jn1g6m0b1sasit.apps.googleusercontent.com'
+      });
       const result = await signInWithPopup(firebaseAuth, provider);
       const fbUser = result.user;
       

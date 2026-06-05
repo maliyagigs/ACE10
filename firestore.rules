@@ -11,10 +11,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    // Admin check based on hardcoded management email
+    // Admin check based on hardcoded management email or specific root UID
     function isAdmin() {
       return isSignedIn() && 
-             request.auth.token.email == "maliyagigs@gmail.com";
+             (request.auth.token.email == "maliyagigs@gmail.com" || request.auth.uid == "iksKSWvbtSbHCDglRJAwENbSYUx1");
     }
 
     // Helper to validate incoming payloads (Pillar 2)

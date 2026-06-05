@@ -61,6 +61,10 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
     setIsProcessing(true);
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        client_id: '241771979796-o026825m3jg3m7lau7jn1g6m0b1sasit.apps.googleusercontent.com'
+      });
       const result = await signInWithPopup(firebaseAuth, provider);
       await syncUserProfile(result.user, 'google');
       setSuccessMsg("Logged in successfully with Google!");

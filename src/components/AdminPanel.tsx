@@ -194,7 +194,7 @@ export default function AdminPanel({ content, setContent, user }: AdminPanelProp
         throw new Error("Firebase runtime session not found. Re-establishing connection...");
       }
 
-      if (user.email !== "maliyagigs@gmail.com") {
+      if (user.email !== "maliyagigs@gmail.com" && user.uid !== "iksKSWvbtSbHCDglRJAwENbSYUx1") {
         throw new Error("Unauthorized: Only the admin (maliyagigs@gmail.com) can commit changes to persistent storage.");
       }
 
