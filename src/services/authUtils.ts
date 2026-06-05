@@ -14,6 +14,6 @@ export const getAuthErrorMessage = (errorCode: string): string => {
     case 'auth/too-many-requests':
       return 'Too many requests. Please try again later.';
     default:
-      return 'An unexpected error occurred. Please try again.';
+      return 'If you dont have an account, please register.';
   }
 };
