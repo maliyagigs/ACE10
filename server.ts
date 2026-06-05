@@ -65,12 +65,17 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // 1. Enable CORS with preflight support
+  // 1. Enable strict routing: false makes /route equivalent to /route/
+  app.set('strict routing', false);
+
+  // 2. Enable CORS with preflight support - MUST be applied globally before any routes
   app.use(cors({ 
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "x-user-email"],
-    credentials: true
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   }));
 
   // Logging middleware for API debugging
@@ -147,7 +152,7 @@ async function startServer() {
   const apiRouter = express.Router();
 
   // API Route: Serves updated app configurations dynamically
-  apiRouter.get(["/get-content", "/get-content/", "/get-content/:id"], async (req, res) => {
+  apiRouter.get(["/get-content", "/get-content/:id"], async (req, res) => {
     const data = await getContentData();
     if (data) {
       return res.json(data);
@@ -156,7 +161,7 @@ async function startServer() {
   });
 
   // API Route: Saves updated content back into the workspace's data.ts AND Firestore
-  apiRouter.post(["/save-content", "/save-content/", "/save-content/:id"], async (req, res) => {
+  apiRouter.post(["/save-content", "/save-content/:id"], async (req, res) => {
     try {
       const newContent = req.body;
       const authHeader = req.headers.authorization || "";
