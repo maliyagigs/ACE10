@@ -171,16 +171,16 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
       <main className="flex-1 overflow-y-auto p-4 md:p-12 relative h-screen scrollbar-hide pb-24 md:pb-12">
         <div className="max-w-6xl mx-auto">
           <AnimatePresence mode="wait">
-             {activeTab === 'hero' && <AdminHeroWorkspace key="hero" content={content} updateContent={updateContent} reorder={reorder} />}
-             {activeTab === 'services' && <AdminServicesWorkspace key="services" content={content} updateContent={updateContent} reorder={reorder} />}
-             {activeTab === 'portfolio' && <AdminPortfolioWorkspace key="portfolio" content={content} updateContent={updateContent} reorder={reorder} />}
-             {activeTab === 'testimonials' && <AdminTestimonialsWorkspace key="testimonials" content={content} updateContent={updateContent} reorder={reorder} />}
-             {activeTab === 'stats' && <AdminStatsWorkspace key="stats" content={content} updateContent={updateContent} reorder={reorder} />}
-             {activeTab === 'countries' && <AdminCountriesWorkspace key="countries" content={content} updateContent={updateContent} reorder={reorder} />}
-             {activeTab === 'footer' && <AdminFooterWorkspace key="footer" content={content} updateContent={updateContent} />}
-             {activeTab === 'theme' && <AdminThemeWorkspace key="theme" content={content} updateContent={updateContent} />}
-             {activeTab === 'inquiries' && <AdminInquiriesWorkspace key="inquiries" content={content} />}
-             {activeTab === 'sync' && <AdminSyncWorkspace key="sync" isSyncing={isSyncing} systemStatus={systemStatus} handleForceSync={handleForceSync} handleReset={handleReset} />}
+             {activeTab === 'hero' && <AdminHeroWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
+             {activeTab === 'services' && <AdminServicesWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
+             {activeTab === 'portfolio' && <AdminPortfolioWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
+             {activeTab === 'testimonials' && <AdminTestimonialsWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
+             {activeTab === 'stats' && <AdminStatsWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
+             {activeTab === 'countries' && <AdminCountriesWorkspace content={content} updateContent={updateContent} reorder={reorder} />}
+             {activeTab === 'footer' && <AdminFooterWorkspace content={content} updateContent={updateContent} />}
+             {activeTab === 'theme' && <AdminThemeWorkspace content={content} updateContent={updateContent} />}
+             {activeTab === 'inquiries' && <AdminInquiriesWorkspace content={content} />}
+             {activeTab === 'sync' && <AdminSyncWorkspace isSyncing={isSyncing} systemStatus={systemStatus} handleForceSync={handleForceSync} handleReset={handleReset} />}
           </AnimatePresence>
         </div>
 
