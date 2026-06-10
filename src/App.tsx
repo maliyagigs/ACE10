@@ -7,6 +7,7 @@ import { StorageService } from "./services/storageService";
 import { db, auth as firebaseAuth } from "./services/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { mergeContentWithDefaults } from "./utils/mergeDefaults";
 
 // Importing Premium custom sections
 import AmbientBackground from "./components/AmbientBackground";
@@ -97,7 +98,7 @@ export default function App() {
   useEffect(() => {
     // a. Load initial local state for immediate renders (SSR/Offline cache)
     const localContent = StorageService.loadContent(initialContent);
-    setContent(localContent);
+    setContent(mergeContentWithDefaults(localContent, initialContent));
 
     // b. Attach real-time listener to the 'latest' CMS configuration document
     const cmsDocRef = doc(db, "cms", "latest");
@@ -106,8 +107,9 @@ export default function App() {
         const liveData = snapshot.data();
         if (liveData && liveData.content) {
           console.info("[CMS Sync] Real-time configuration push detected from Cloud!");
-          setContent(liveData.content);
-          StorageService.saveContent(liveData.content);
+          const merged = mergeContentWithDefaults(liveData.content, initialContent);
+          setContent(merged);
+          StorageService.saveContent(merged);
         }
       }
     }, (err) => {
@@ -118,8 +120,9 @@ export default function App() {
         .then(res => res.json())
         .then(data => {
           if (data && data.siteName) {
-            setContent(data);
-            StorageService.saveContent(data);
+            const merged = mergeContentWithDefaults(data, initialContent);
+            setContent(merged);
+            StorageService.saveContent(merged);
           }
         }).catch(() => {});
     });
@@ -128,8 +131,9 @@ export default function App() {
   }, []);
 
   const handleUpdateContent = (newContent: AppContent) => {
-    setContent(newContent);
-    StorageService.saveContent(newContent);
+    const merged = mergeContentWithDefaults(newContent, initialContent);
+    setContent(merged);
+    StorageService.saveContent(merged);
     // Note: Cloud persistence and src/data.ts synchronization is handled via the "SAVE CHANGES" 
     // action in the AdminPanel to ensure secure, authenticated transactions.
   };
@@ -176,7 +180,7 @@ export default function App() {
     <div className="min-h-screen relative text-slate-100 font-sans selection:bg-blue-600 selection:text-white antialiased">
       {/* 1. Immersive Ambient Particles and glowing moving blobs behind layout */}
       <AmbientBackground theme={content.theme} />
-      <InertiaScroll />
+      {!isAdmin && <InertiaScroll />}
 
       {/* Modern cyber glass floating Navigation bar */}
       <nav className="fixed top-0 inset-x-0 h-20 bg-slate-950/70 backdrop-blur-xl border-b border-slate-900/80 flex items-center justify-between px-6 md:px-12 z-50">

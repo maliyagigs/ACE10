@@ -54,7 +54,7 @@ export function AdminInquiriesWorkspace({ content, updateContent }: AdminInquiri
   const handleDeleteInquiry = (id: string) => {
     if (confirm('Are you sure you want to permanently delete this inquiry? You will need to click "Production Sync" to save changes back to the cloud.')) {
       updateContent(c => {
-        c.quoteInquiries = c.quoteInquiries.filter(i => i.id !== id);
+        c.quoteInquiries = (c.quoteInquiries || []).filter(i => i.id !== id);
       });
     }
   };

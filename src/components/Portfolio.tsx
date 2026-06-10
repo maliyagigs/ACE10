@@ -31,14 +31,7 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
     isDraggingRef.current = isDragging;
   }, [isDragging]);
 
-  // Fallback safety
-  if (!portfolio || portfolio.length === 0) {
-    return (
-      <section id="portfolio" className="py-24 text-center text-slate-400">
-        No projects available in portfolio.
-      </section>
-    );
-  }
+
 
   // Handle window width for responsive layout
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
@@ -77,6 +70,7 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
 
   // Smooth interpolation loop (zero-re-render inert slider)
   useEffect(() => {
+    if (!portfolio || portfolio.length === 0) return;
     let rId: number;
 
     const updateCardStyles = (offset: number) => {
@@ -167,6 +161,7 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
 
   // Non-passive wheel event interceptor to lock and spin
   useEffect(() => {
+    if (!portfolio || portfolio.length === 0) return;
     const section = sectionRef.current;
     if (!section) return;
 
@@ -252,6 +247,14 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
     }
     setTargetOffset(candidate);
   };
+
+  if (!portfolio || portfolio.length === 0) {
+    return (
+      <section id="portfolio" className="py-24 text-center text-slate-400">
+        No projects available in portfolio.
+      </section>
+    );
+  }
 
   return (
     <section 

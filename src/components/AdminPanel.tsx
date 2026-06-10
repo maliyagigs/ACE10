@@ -6,6 +6,7 @@ import { db, auth as firebaseAuth } from '../services/firebase';
 import { AppContent } from '../types';
 import { initialContent } from '../data';
 import { API_ENDPOINTS } from '../config';
+import { mergeContentWithDefaults } from '../utils/mergeDefaults';
 
 // Modular Workspace Panels
 import { AdminHeroWorkspace, AdminServicesWorkspace, AdminPortfolioWorkspace } from './admin/AdminContentPanels';
@@ -76,12 +77,14 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
   };
 
   const updateContent = (modifier: (curr: AppContent) => void) => {
-    const copy = JSON.parse(JSON.stringify(content));
+    let copy = JSON.parse(JSON.stringify(content));
+    copy = mergeContentWithDefaults(copy, initialContent);
     modifier(copy);
     setContent(copy);
   };
 
-  const reorder = <T,>(list: T[], index: number, direction: 'up' | 'down'): T[] => {
+  const reorder = <T,>(list: T[] | undefined, index: number, direction: 'up' | 'down'): T[] => {
+    if (!list) return [];
     const result = [...list];
     const targetIdx = direction === 'up' ? index - 1 : index + 1;
     if (targetIdx < 0 || targetIdx >= list.length) return list;
@@ -96,20 +99,53 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
     }
   };
 
-  const tabs = [
+  // State elements to control Accordions inside the Navigation Bar
+  const [isOperationsOpen, setIsOperationsOpen] = useState(true);
+  const [isContentOpen, setIsContentOpen] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(true);
+
+  const operationsTabs = [
     { id: 'dashboard', label: 'Monitor', icon: Icons.LayoutDashboard },
-    { id: 'crm', label: 'CRM', icon: Icons.Users },
-    { id: 'hero', label: 'Identity', icon: Icons.Layout },
-    { id: 'services', label: 'Services', icon: Icons.Layers },
-    { id: 'portfolio', label: 'Portfolio', icon: Icons.Briefcase },
-    { id: 'testimonials', label: 'Reviews', icon: Icons.MessageCircle },
-    { id: 'stats', label: 'Metrics', icon: Icons.BarChart3 },
-    { id: 'countries', label: 'Nodes', icon: Icons.Globe },
-    { id: 'footer', label: 'Footer', icon: Icons.HardDrive },
-    { id: 'theme', label: 'Aesthetics', icon: Icons.Palette },
-    { id: 'inquiries', label: 'Inquiries', icon: Icons.Mail },
-    { id: 'sync', label: 'Production', icon: Icons.CloudLightning },
+    { id: 'crm', label: 'CRM Tracking', icon: Icons.Users },
+    { id: 'inquiries', label: 'Inbound Leads', icon: Icons.Mail },
   ] as const;
+
+  const contentTabs = [
+    { id: 'hero', label: 'Hero Branding', icon: Icons.Layout },
+    { id: 'services', label: 'Services Suite', icon: Icons.Layers },
+    { id: 'portfolio', label: 'Work Showcase', icon: Icons.Briefcase },
+    { id: 'testimonials', label: 'Testimonials', icon: Icons.MessageCircle },
+    { id: 'stats', label: 'KPI Counters', icon: Icons.BarChart3 },
+    { id: 'countries', label: 'Node Map', icon: Icons.Globe },
+    { id: 'footer', label: 'Base Footer', icon: Icons.HardDrive },
+  ] as const;
+
+  const settingsTabs = [
+    { id: 'theme', label: 'Aesthetics', icon: Icons.Palette },
+    { id: 'sync', label: 'Cloud Sync', icon: Icons.CloudLightning },
+  ] as const;
+
+  const renderTabButton = (tab: { id: string; label: string; icon: any }) => {
+    const isActive = activeTab === tab.id;
+    return (
+      <button
+        key={tab.id}
+        type="button"
+        onClick={() => setActiveTab(tab.id as TabType)}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer group select-none relative ${
+          isActive 
+            ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/15' 
+            : 'text-slate-400 hover:text-white hover:bg-slate-900/60'
+        }`}
+      >
+        <tab.icon className={`w-4 h-4 shrink-0 transition-all group-hover:scale-105 duration-200 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-blue-400'}`} />
+        <span className="uppercase tracking-widest font-mono text-[9px] text-left leading-none">{tab.label}</span>
+        {isActive && (
+          <motion.div layoutId="tab-pill" className="ml-auto w-1 h-3.5 bg-white/45 rounded-full" />
+        )}
+      </button>
+    );
+  };
 
   return (
     <div className="w-full min-h-screen bg-slate-950 font-sans text-slate-200 overflow-hidden flex flex-col md:flex-row">
@@ -118,7 +154,7 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
       <motion.aside 
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-900 bg-slate-950 p-6 flex flex-col gap-8 h-auto md:h-screen sticky top-0"
+        className="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-900 bg-slate-950 p-6 flex flex-col gap-6 h-auto md:h-screen sticky top-0"
       >
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-3">
@@ -141,24 +177,83 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
           )}
         </div>
 
-        <nav className="flex flex-col gap-1.5 flex-1 overflow-y-auto scrollbar-hide py-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabType)}
-              className={`${activeTab === tab.id ? 'hidden' : 'flex'} items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer group ${
-                activeTab === tab.id 
-                  ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/10' 
-                  : 'text-slate-500 hover:text-white hover:bg-slate-900/50'
-              }`}
+        <nav className="flex flex-col gap-4 flex-1 overflow-y-auto scrollbar-hide py-2 pr-1">
+          
+          {/* Section A: Operations & CRM monitoring */}
+          <div className="space-y-1.5">
+            <button 
+              type="button"
+              onClick={() => setIsOperationsOpen(!isOperationsOpen)}
+              className="w-full flex items-center justify-between px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors cursor-pointer select-none"
             >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-white' : 'text-slate-600 group-hover:text-blue-400'}`} />
-              <span className="uppercase tracking-widest font-mono">{tab.label}</span>
-              {activeTab === tab.id && (
-                <motion.div layoutId="tab-pill" className="ml-auto w-1 h-4 bg-white/40 rounded-full" />
-              )}
+              <span className="flex items-center gap-1.5"><Icons.Shield className="w-3.5 h-3.5 text-blue-500" /> Operations</span>
+              <Icons.ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOperationsOpen ? '' : '-rotate-90'}`} />
             </button>
-          ))}
+            <AnimatePresence initial={false}>
+              {isOperationsOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="space-y-1 overflow-hidden"
+                >
+                  {operationsTabs.map(renderTabButton)}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Section B: Page Content Subcategories (Dynamic foldable list) */}
+          <div className="space-y-1.5">
+            <button 
+              type="button"
+              onClick={() => setIsContentOpen(!isContentOpen)}
+              className="w-full flex items-center justify-between px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors cursor-pointer select-none"
+            >
+              <span className="flex items-center gap-1.5"><Icons.Layers className="w-3.5 h-3.5 text-blue-500" /> CMS Sections</span>
+              <Icons.ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isContentOpen ? '' : '-rotate-90'}`} />
+            </button>
+            <AnimatePresence initial={false}>
+              {isContentOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="space-y-1 overflow-hidden"
+                >
+                  {contentTabs.map(renderTabButton)}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Section C: Master Theme & Production settings */}
+          <div className="space-y-1.5">
+            <button 
+              type="button"
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              className="w-full flex items-center justify-between px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors cursor-pointer select-none"
+            >
+              <span className="flex items-center gap-1.5"><Icons.Settings className="w-3.5 h-3.5 text-blue-500" /> System settings</span>
+              <Icons.ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isSettingsOpen ? '' : '-rotate-90'}`} />
+            </button>
+            <AnimatePresence initial={false}>
+              {isSettingsOpen && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="space-y-1 overflow-hidden"
+                >
+                  {settingsTabs.map(renderTabButton)}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
         </nav>
 
         <div className="pt-6 border-t border-slate-900">

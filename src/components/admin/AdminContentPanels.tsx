@@ -320,7 +320,7 @@ export function AdminPortfolioWorkspace({ content, updateContent, reorder }: Adm
               <ImageUploader
                 value={newProject.image || ''}
                 onChange={(val) => setNewProject({ ...newProject, image: val })}
-                placeholder="Mock Image"
+                placeholder="Project Image"
               />
               <input 
                 type="text"

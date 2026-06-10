@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { auth as firebaseAuth, db } from '../services/firebase';
@@ -38,6 +38,20 @@ export default function LoginPage({ theme, user, setUser, onBackToHome }: LoginP
   // Feedback states
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Dynamic Scroll Lock effect to keep sign in page perfectly non-scrollable
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalHeight = document.body.style.height;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.height = originalHeight;
+    };
+  }, []);
 
   // Sync user profile to Firestore
   const syncUserProfile = async (fbUser: any, type: 'google' | 'email') => {

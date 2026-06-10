@@ -17,47 +17,7 @@ interface Client {
   notes?: string;
 }
 
-const DEFAULT_CLIENTS: Client[] = [
-  {
-    id: 'c-1',
-    name: 'Sarah Mitchell',
-    email: 'sarah@apexventures.io',
-    company: 'Apex Ventures LLC',
-    projectName: 'Fintech Mobile Subsystem',
-    status: 'active',
-    budget: 14500,
-    currency: 'USD',
-    progress: 75,
-    dateCreated: '2026-05-12',
-    notes: 'Primary phase backend systems and interactive charts are fully integrated. Polishing responsive mobile views.'
-  },
-  {
-    id: 'c-2',
-    name: 'Dilhan Perera',
-    email: 'dilhan@lankafruit.lk',
-    company: 'Lanka Agro Exporters',
-    projectName: 'Corporate eCommerce Hub',
-    status: 'pending',
-    budget: 2400000,
-    currency: 'LKR',
-    progress: 40,
-    dateCreated: '2026-05-28',
-    notes: 'Database setups completed. Awaiting payment credentials confirmation to initiate production sync templates.'
-  },
-  {
-    id: 'c-3',
-    name: 'Oliver Thorne',
-    email: 'oliver@coastalsolutions.com.au',
-    company: 'Coastal Solutions Pty',
-    projectName: 'AI Logistics Platform',
-    status: 'completed',
-    budget: 8500,
-    currency: 'AUD',
-    progress: 100,
-    dateCreated: '2026-04-15',
-    notes: 'Successful handoff. High-performance caching layers and responsive theme palettes exceeded goals.'
-  }
-];
+const DEFAULT_CLIENTS: Client[] = [];
 
 export function AdminCRMWorkspace() {
   const [clients, setClients] = useState<Client[]>([]);

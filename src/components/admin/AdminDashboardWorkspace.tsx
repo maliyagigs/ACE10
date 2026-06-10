@@ -17,13 +17,13 @@ interface Client {
 }
 
 const mockTraffic = [
-  { day: 'Mon', visits: 180, inquiries: 2 },
-  { day: 'Tue', visits: 310, inquiries: 5 },
-  { day: 'Wed', visits: 240, inquiries: 1 },
-  { day: 'Thu', visits: 480, inquiries: 8 },
-  { day: 'Fri', visits: 390, inquiries: 4 },
-  { day: 'Sat', visits: 520, inquiries: 9 },
-  { day: 'Sun', visits: 420, inquiries: 3 },
+  { day: 'Mon', visits: 0, inquiries: 0 },
+  { day: 'Tue', visits: 0, inquiries: 0 },
+  { day: 'Wed', visits: 0, inquiries: 0 },
+  { day: 'Thu', visits: 0, inquiries: 0 },
+  { day: 'Fri', visits: 0, inquiries: 0 },
+  { day: 'Sat', visits: 0, inquiries: 0 },
+  { day: 'Sun', visits: 0, inquiries: 0 },
 ];
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
@@ -49,18 +49,10 @@ export function AdminDashboardWorkspace() {
       try {
         setActiveTasks(JSON.parse(savedTasks));
       } catch (e) {
-        setActiveTasks([
-          { id: '1', text: 'Initiate SEO metadata review audit', done: false },
-          { id: '2', text: 'Optimize asset GZip compression configurations', done: true },
-          { id: '3', text: 'Revalidate contact portal API routing endpoints', done: false }
-        ]);
+        setActiveTasks([]);
       }
     } else {
-      const defaultTasks = [
-        { id: '1', text: 'Initiate SEO metadata review audit', done: false },
-        { id: '2', text: 'Optimize asset GZip compression configurations', done: true },
-        { id: '3', text: 'Revalidate contact portal API routing endpoints', done: false }
-      ];
+      const defaultTasks: { id: string; text: string; done: boolean }[] = [];
       setActiveTasks(defaultTasks);
       localStorage.setItem('ace10_dashboard_tasks', JSON.stringify(defaultTasks));
     }
@@ -156,9 +148,9 @@ export function AdminDashboardWorkspace() {
         <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl relative overflow-hidden group">
           <span className="text-[9px] uppercase font-mono tracking-widest text-slate-500 block mb-1">VISITOR GRAPH</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-white">2,540</span>
-            <span className="text-[10px] text-emerald-400 font-mono font-bold flex items-center shrink-0">
-              <Icons.TrendingUp className="w-3 h-3 mr-0.5" /> +24%
+            <span className="text-2xl font-bold font-mono text-white">0</span>
+            <span className="text-[10px] text-slate-550 font-mono font-bold flex items-center shrink-0">
+               +0%
             </span>
           </div>
           <p className="text-[10px] text-slate-500 font-mono mt-1">Unique session hits/wk</p>
