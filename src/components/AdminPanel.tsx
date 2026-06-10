@@ -57,10 +57,27 @@ export default function AdminPanel({ content, setContent, user, onClose }: Admin
         throw new Error("Unauthorized: Admin privileges required.");
       }
 
+      // Helper to recursively remove undefined values which Firestore rejects
+      const cleanFirestoreData = (data: any): any => {
+        if (data === undefined) return null;
+        if (data === null) return null;
+        if (Array.isArray(data)) return data.map(cleanFirestoreData);
+        if (typeof data === 'object') {
+          const clean: any = {};
+          for (const key of Object.keys(data)) {
+            if (data[key] !== undefined) {
+              clean[key] = cleanFirestoreData(data[key]);
+            }
+          }
+          return clean;
+        }
+        return data;
+      };
+
       // Direct write to Firestore ensures reliability and bypasses CORS/405 redirect issues
       const cmsRef = doc(db, "cms", "latest");
       await setDoc(cmsRef, {
-        content: content,
+        content: cleanFirestoreData(content),
         updatedAt: new Date().toISOString()
       }, { merge: true });
       
