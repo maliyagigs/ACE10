@@ -76,7 +76,15 @@ export function AdminTestimonialsWorkspace({ content, updateContent, reorder }: 
         <div className="space-y-4 max-h-[600px] overflow-y-auto scrollbar-hide pr-2">
           {content.testimonials.map((t, idx) => (
             <div key={t.id} className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-start gap-4">
-              <img src={t.image} className="w-12 h-12 rounded-full border border-slate-800 shrink-0" />
+              <img 
+                src={t.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop"} 
+                className="w-12 h-12 rounded-full border border-slate-800 shrink-0 object-cover" 
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop";
+                }}
+              />
               <div className="flex-1 space-y-2">
                 <input value={t.name} onChange={(e) => updateContent(c => { c.testimonials[idx].name = e.target.value; })} className="bg-transparent font-bold text-white text-sm focus:outline-none" />
                 <input value={t.company} onChange={(e) => updateContent(c => { c.testimonials[idx].company = e.target.value; })} className="bg-transparent text-[10px] font-mono text-slate-500 uppercase focus:outline-none block" />

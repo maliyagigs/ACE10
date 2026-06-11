@@ -21,6 +21,20 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
   const dragStartX = useRef(0);
   const dragStartOffset = useRef(0);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const lastInteractionRef = useRef(Date.now());
+
+  const resetInteraction = () => {
+    lastInteractionRef.current = Date.now();
+    const len = portfolio.length;
+    if (len > 0) {
+      setTargetOffset((currTarget) => {
+        const roundedOffset = Math.floor(currentOffsetRef.current / len) * len;
+        currentOffsetRef.current -= roundedOffset;
+        targetOffsetRef.current -= roundedOffset;
+        return currTarget - roundedOffset;
+      });
+    }
+  };
 
   // Sync state values with refs for zero-rendering background threads
   useEffect(() => {
@@ -159,6 +173,35 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
     };
   }, [portfolio.length, radius, activeIdx, targetOffset, isDragging]);
 
+  // Auto spinning at medium speed when idle
+  useEffect(() => {
+    if (!portfolio || portfolio.length === 0) return;
+    let frameId: number;
+    let lastTime = performance.now();
+
+    const spin = (time: number) => {
+      const delta = time - lastTime;
+      lastTime = time;
+
+      const now = Date.now();
+      const timeSinceInteraction = now - lastInteractionRef.current;
+
+      // Auto-spin if we are not dragging and it has been > 3.5 seconds since last interaction
+      if (!isDraggingRef.current && timeSinceInteraction > 3500) {
+        // Comfortably fast automatic rotation speed
+        const speed = 0.0003;
+        setTargetOffset((prev) => prev + speed * delta);
+      }
+
+      frameId = requestAnimationFrame(spin);
+    };
+
+    frameId = requestAnimationFrame(spin);
+    return () => {
+      if (frameId) cancelAnimationFrame(frameId);
+    };
+  }, [portfolio.length]);
+
   // Non-passive wheel event interceptor to lock and spin
   useEffect(() => {
     if (!portfolio || portfolio.length === 0) return;
@@ -168,6 +211,7 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
     let totalAccumulatedDelta = 0;
 
     const handleWheel = (e: WheelEvent) => {
+      resetInteraction();
       // Small threshold filter
       if (Math.abs(e.deltaY) < 3) return;
 
@@ -199,6 +243,7 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
 
   // Pointer drag gestures
   const handlePointerDown = (e: React.PointerEvent) => {
+    resetInteraction();
     setIsDragging(true);
     dragStartX.current = e.clientX;
     dragStartOffset.current = targetOffset;
@@ -209,6 +254,7 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
+    resetInteraction();
     const dx = e.clientX - dragStartX.current;
     const sensitivity = windowWidth < 768 ? 0.004 : 0.0025;
     const newOffset = dragStartOffset.current - dx * sensitivity;
@@ -216,6 +262,7 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
+    resetInteraction();
     setIsDragging(false);
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.releasePointerCapture(e.pointerId);
@@ -226,15 +273,18 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
 
   // Next / Prev triggers
   const handleNext = () => {
+    resetInteraction();
     setTargetOffset((prev) => Math.round(prev) + 1);
   };
 
   const handlePrev = () => {
+    resetInteraction();
     setTargetOffset((prev) => Math.round(prev) - 1);
   };
 
   // Safe dot navigation - finding the closest circular offset matching that index
   const handleDotClick = (idx: number) => {
+    resetInteraction();
     const currentRound = Math.round(targetOffset);
     const currentBase = Math.floor(currentRound / portfolio.length) * portfolio.length;
     let candidate = currentBase + idx;

@@ -138,7 +138,8 @@ export function ImageUploader({ label, value, onChange, placeholder = "https://.
               alt="Preview"
               className="w-12 h-12 rounded-lg object-cover border border-slate-800 shadow-md"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=40&auto=format&fit=crop';
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=40&auto=format&fit=crop';
               }}
               referrerPolicy="no-referrer"
             />
