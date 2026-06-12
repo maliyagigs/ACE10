@@ -18,6 +18,7 @@ import Services from "./components/Services";
 import Portfolio from "./components/Portfolio";
 import WhyChooseUs from "./components/WhyChooseUs";
 import Stats from "./components/Stats";
+import SiteScores from "./components/SiteScores";
 import Testimonials from "./components/Testimonials";
 import ServedCountries from "./components/ServedCountries";
 import GlowingArtwork from "./components/GlowingArtwork";
@@ -70,9 +71,18 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isSiteLoaded, setIsSiteLoaded] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 80);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // 1. Synchronize Auth Session with Firebase Client SDK (Unified Auth)
   useEffect(() => {
@@ -185,7 +195,11 @@ export default function App() {
       {!isAdmin && <InertiaScroll />}
 
       {/* Modern cyber glass floating Navigation bar */}
-      <nav className="fixed top-0 inset-x-0 h-20 bg-slate-950/70 backdrop-blur-xl border-b border-slate-900/80 flex items-center justify-between px-6 md:px-12 z-50">
+      <nav className={`fixed top-0 inset-x-0 h-20 bg-slate-950/70 backdrop-blur-xl border-b border-slate-900/80 flex items-center justify-between px-6 md:px-12 z-50 transition-all duration-300 ${
+        location.pathname === "/" && !scrolled && !isAdmin
+          ? "pointer-events-none opacity-0 -translate-y-5"
+          : "pointer-events-auto opacity-100 translate-y-0"
+      }`}>
         {/* Dynamic Site Name configured by CMS */}
         <a
           href="/"
@@ -334,6 +348,7 @@ export default function App() {
                   <Hero
                     content={content.hero}
                     theme={content.theme}
+                    siteName={content.siteName}
                     isLoggedIn={!!user}
                     onStartProject={() => {
                       if (user) {
@@ -347,11 +362,15 @@ export default function App() {
                   {/* Numerical counters section */}
                   <Stats stats={content.stats} theme={content.theme} />
 
+                  {/* Web Vitals and Lighthouse Audit scores Section */}
+                  <SiteScores theme={content.theme} />
+
                   {/* Handcrafted Services layout with organic vector shapes rendering behind cards */}
                   <Services
                     services={content.services}
                     theme={content.theme}
                     header={content.servicesHeader}
+                    servicesLab={content.servicesLab}
                   />
 
                   {/* Segment showing custom vertical project showcase mockups */}

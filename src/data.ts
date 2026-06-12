@@ -2,6 +2,105 @@ import { AppContent } from './types';
 
 export const initialContent: AppContent = {
   "siteName": "ACE10",
+  "servicesLab": {
+    "secGridTitleEn": "Our Service Suite",
+    "secGridTitleAr": "حزمة خدماتنا المتكاملة",
+    "secGridSubEn": "Six specialized solution tracks: Custom Website Design, E-commerce, Web Applications, WordPress Dev, UI/UX Prototyping, and SEO Optimizations.",
+    "secGridSubAr": "ستة مسارات فنية متكاملة لتلبية كافة متطلباتكم الرقمية وتطوير أعمالكم عالمياً.",
+    
+    "secOrbitTitleEn": "Engineering Spotlight",
+    "secOrbitTitleAr": "التميز التقني والهندسي",
+    "secOrbitSubEn": "Four modern development processes & infrastructure standards powering our responsive high-performance web products.",
+    "secOrbitSubAr": "أربع ركائز أساسية تدعم بنيتنا البرمجية للتطبيقات والمواقع ذات التحميل فائق السرعة.",
+
+    "ctaMoreEn": "Explore",
+    "ctaMoreAr": "استكشف",
+
+    "cards": [
+      {
+        "id": "c1",
+        "titleEn": "Website Design",
+        "titleAr": "تصميم المواقع",
+        "textEn": "Tailor-made, high-conversion vector designs matching your brand voice with meticulous layout perfection.",
+        "textAr": "تصاميم فريدة وعصرية مهيأة خصيصاً لزيادة المبيعات والتحويلات وتطوير هوية أعمالك.",
+        "icon": "Layers"
+      },
+      {
+        "id": "c2",
+        "titleEn": "E-commerce Dev",
+        "titleAr": "التجارة الإلكترونية",
+        "textEn": "Next-generation WooCommerce and custom commerce systems with ultra-fast secure checkout structures.",
+        "textAr": "متاجر إلكترونية وحلول تسوق متطورة تدعم عمليات دفع آمنة وسهلة تضمن رضا العملاء.",
+        "icon": "Hexagon"
+      },
+      {
+        "id": "c3",
+        "titleEn": "Web Applications",
+        "titleAr": "تطبيقات الويب",
+        "textEn": "Dynamic, rapid-scaling SaaS single-page platforms programmed using premium React frameworks as standard.",
+        "textAr": "تطوير تطبيقات سحابية مخصصة ومنصات برمجية فائقة الأداء سريعة الاستجابة.",
+        "icon": "Sun"
+      },
+      {
+        "id": "c4",
+        "titleEn": "WordPress Suite",
+        "titleAr": "ووردبريس الاحترافي",
+        "textEn": "Extremely clean, editable custom themes paired with block-based editing matrices for optimal client control.",
+        "textAr": "أكواد برمجية نظيفة وقوالب ووردبريس مخصصة قابلة للتعديل والتحكم الكامل بكل سهولة.",
+        "icon": "Play"
+      },
+      {
+        "id": "c5",
+        "titleEn": "UI/UX Design",
+        "titleAr": "واجهة المستخدم",
+        "textEn": "Scientific interface mapping, high-fidelity wireframing, interactive prototyping, and deep user testing loops.",
+        "textAr": "تحسين تجربة العميل من خلال دراسة سلوك المستخدم وتصميم واجهات تفاعلية مذهلة.",
+        "icon": "Sparkles"
+      },
+      {
+        "id": "c6",
+        "titleEn": "Maintenance & SEO",
+        "titleAr": "الصيانة والسيو",
+        "textEn": "Continuous system audit protocols, rapid feature modifications, core web vitals optimization, and search rank sweeps.",
+        "textAr": "خطط صيانة دورية، حماية مستمرة، وضمان ظهور موقعك في الصفحات الأولى لمحركات البحث.",
+        "icon": "Layers"
+      }
+    ],
+    "carousel": [
+      {
+        "id": "cr1",
+        "titleEn": "Traceable Operations",
+        "titleAr": "تتبع فوري للأداء",
+        "textEn": "Latency budgets and live trace metrics keeping loading speeds consistently low.",
+        "textAr": "مراقبة مستمرة لمعدلات التأخير لضمان أعلى سرعة استجابة ممكنة.",
+        "icon": "Activity"
+      },
+      {
+        "id": "cr2",
+        "titleEn": "Distributed Network",
+        "titleAr": "شبكة سحابية موزعة",
+        "textEn": "Globally distributed web nodes with realtime health monitoring status.",
+        "textAr": "استضافة سحابية في مراكز بيانات متعددة حول العالم لضمان عمل الموقع دون انقطاع.",
+        "icon": "Network"
+      },
+      {
+        "id": "cr3",
+        "titleEn": "Secured Encryption",
+        "titleAr": "التشفير والأمان المتقدم",
+        "textEn": "Fully encrypted payload protocols at rest and in transit for absolute client protection.",
+        "textAr": "حماية كاملة للبيانات وتشفير قواعد البيانات لمنع أي تهديدات سيبرانية.",
+        "icon": "ShieldAlert"
+      },
+      {
+        "id": "cr4",
+        "titleEn": "Edge Computing",
+        "titleAr": "معالجة طرفية ذكية",
+        "textEn": "Supercharged dynamic content caching across diverse global Edge CDN networks.",
+        "textAr": "توصيل المحتوى من أقرب خادم جغرافي لتقليل زمن الاستجابة للمستخدمين للصفر.",
+        "icon": "HeartPulse"
+      }
+    ]
+  },
   "theme": {
     "primaryColor": "#0F172A",
     "secondaryColor": "#3B82F6",

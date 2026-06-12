@@ -286,6 +286,215 @@ export function AdminServicesWorkspace({ content, updateContent, reorder }: Admi
           </div>
         </div>
       </div>
+
+      <div className="border-t border-slate-900 pt-8 mt-8 space-y-8">
+        <h3 className="text-sm font-mono font-black text-blue-500 uppercase tracking-widest px-2">3D Neon Lab & Spotlight Deck Customizations</h3>
+
+        {/* 3D Shapes & Spotlight Deck CMS Customizations */}
+        <AdminControlGroup title="3D Interactive Suite Titles & Headers">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+            {/* Section 1 */}
+            <div className="space-y-4 p-4 rounded-xl bg-slate-950/40 border border-slate-800">
+              <h5 className="text-[11px] font-mono font-bold text-teal-400 uppercase tracking-wider">Shape System Section (Bento Grid)</h5>
+              <div>
+                <label className="block text-[9px] font-mono text-slate-500 uppercase font-bold mb-1">Title (English)</label>
+                <input 
+                  type="text"
+                  value={content.servicesLab?.secGridTitleEn || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.secGridTitleEn = e.target.value; })}
+                  className="w-full px-3 py-2 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[9px] font-mono text-slate-500 uppercase font-bold mb-1">Title (Arabic)</label>
+                <input 
+                  type="text"
+                  value={content.servicesLab?.secGridTitleAr || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.secGridTitleAr = e.target.value; })}
+                  className="w-full px-3 py-2 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono text-slate-500 uppercase font-bold mb-1">Subtitle (English)</label>
+                <textarea 
+                  rows={2}
+                  value={content.servicesLab?.secGridSubEn || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.secGridSubEn = e.target.value; })}
+                  className="w-full px-3 py-2 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono text-slate-500 uppercase font-bold mb-1">Subtitle (Arabic)</label>
+                <textarea 
+                  rows={2}
+                  value={content.servicesLab?.secGridSubAr || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.secGridSubAr = e.target.value; })}
+                  className="w-full px-3 py-2 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Section 2 */}
+            <div className="space-y-4 p-4 rounded-xl bg-slate-950/40 border border-slate-800">
+              <h5 className="text-[11px] font-mono font-bold text-violet-400 uppercase tracking-wider">Spotlight Deck Section (Carousel)</h5>
+              <div>
+                <label className="block text-[9px] font-mono text-slate-500 uppercase font-bold mb-1">Title (English)</label>
+                <input 
+                  type="text"
+                  value={content.servicesLab?.secOrbitTitleEn || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.secOrbitTitleEn = e.target.value; })}
+                  className="w-full px-3 py-2 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[9px] font-mono text-slate-500 uppercase font-bold mb-1">Title (Arabic)</label>
+                <input 
+                  type="text"
+                  value={content.servicesLab?.secOrbitTitleAr || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.secOrbitTitleAr = e.target.value; })}
+                  className="w-full px-3 py-2 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono text-slate-500 uppercase font-bold mb-1">Subtitle (English)</label>
+                <textarea 
+                  rows={2}
+                  value={content.servicesLab?.secOrbitSubEn || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.secOrbitSubEn = e.target.value; })}
+                  className="w-full px-3 py-2 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none resize-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-mono text-slate-500 uppercase font-bold mb-1">Subtitle (Arabic)</label>
+                <textarea 
+                  rows={2}
+                  value={content.servicesLab?.secOrbitSubAr || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.secOrbitSubAr = e.target.value; })}
+                  className="w-full px-3 py-2 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+            
+            {/* CTA edit */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-950/40 border border-slate-800">
+              <div>
+                <label className="block text-[9px] font-mono text-slate-500 uppercase font-bold mb-1">"Open/CTA" Label (English)</label>
+                <input 
+                  type="text"
+                  value={content.servicesLab?.ctaMoreEn || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.ctaMoreEn = e.target.value; })}
+                  className="w-full px-4 py-2.5 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[9px] font-mono text-slate-500 uppercase font-bold mb-1">"Open/CTA" Label (Arabic)</label>
+                <input 
+                  type="text"
+                  value={content.servicesLab?.ctaMoreAr || ""}
+                  onChange={(e) => updateContent(c => { if(!c.servicesLab) c.servicesLab={}; c.servicesLab.ctaMoreAr = e.target.value; })}
+                  className="w-full px-4 py-2.5 bg-slate-950 rounded-xl text-xs text-white border border-slate-800 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        </AdminControlGroup>
+
+        <AdminControlGroup title="6 Shape System Bento Card Textures">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+            {(content.servicesLab?.cards || []).map((card, idx) => (
+              <div key={card.id || idx} className="p-4 rounded-xl bg-slate-950/40 border border-slate-800 space-y-3">
+                <span className="text-[10px] font-mono font-bold text-teal-400">Card 0{idx+1} Layout Preset: {idx === 0 ? 'Orb Mint' : idx === 1 ? 'Chamfer Violet' : idx === 2 ? 'Solar' : idx === 3 ? 'Cinema Wide' : idx === 4 ? 'Prism' : 'Void'}</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[8px] font-mono text-slate-500 mb-1">Title (En)</label>
+                    <input 
+                      type="text"
+                      value={card.titleEn}
+                      onChange={(e) => updateContent(c => { if (c.servicesLab?.cards?.[idx]) { c.servicesLab.cards[idx].titleEn = e.target.value; } })}
+                      className="w-full px-2.5 py-1.5 bg-slate-950 text-xs rounded-lg text-white border border-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-mono text-slate-500 mb-1">Title (Ar)</label>
+                    <input 
+                      type="text"
+                      value={card.titleAr}
+                      onChange={(e) => updateContent(c => { if (c.servicesLab?.cards?.[idx]) { c.servicesLab.cards[idx].titleAr = e.target.value; } })}
+                      className="w-full px-2.5 py-1.5 bg-slate-950 text-xs rounded-lg text-white border border-slate-800"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[8px] font-mono text-slate-500 mb-1">Description (En)</label>
+                  <textarea 
+                    rows={2}
+                    value={card.textEn}
+                    onChange={(e) => updateContent(c => { if (c.servicesLab?.cards?.[idx]) { c.servicesLab.cards[idx].textEn = e.target.value; } })}
+                    className="w-full px-2.5 py-1.5 bg-slate-950 text-xs rounded-lg text-white border border-slate-800 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[8px] font-mono text-slate-500 mb-1">Description (Ar)</label>
+                  <textarea 
+                    rows={2}
+                    value={card.textAr}
+                    onChange={(e) => updateContent(c => { if (c.servicesLab?.cards?.[idx]) { c.servicesLab.cards[idx].textAr = e.target.value; } })}
+                    className="w-full px-2.5 py-1.5 bg-slate-950 text-xs rounded-lg text-white border border-slate-800 resize-none"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </AdminControlGroup>
+
+        <AdminControlGroup title="4 Spotlight Deck Panels">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+            {(content.servicesLab?.carousel || []).map((panel, idx) => (
+              <div key={panel.id || idx} className="p-4 rounded-xl bg-slate-950/40 border border-slate-800 space-y-3">
+                <span className="text-[10px] font-mono font-bold text-violet-400">Spotlight Panel 0{idx+1}</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[8px] font-mono text-slate-500 mb-1">Title (En)</label>
+                    <input 
+                      type="text"
+                      value={panel.titleEn}
+                      onChange={(e) => updateContent(c => { if (c.servicesLab?.carousel?.[idx]) { c.servicesLab.carousel[idx].titleEn = e.target.value; } })}
+                      className="w-full px-2.5 py-1.5 bg-slate-950 text-xs rounded-lg text-white border border-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[8px] font-mono text-slate-500 mb-1">Title (Ar)</label>
+                    <input 
+                      type="text"
+                      value={panel.titleAr}
+                      onChange={(e) => updateContent(c => { if (c.servicesLab?.carousel?.[idx]) { c.servicesLab.carousel[idx].titleAr = e.target.value; } })}
+                      className="w-full px-2.5 py-1.5 bg-slate-950 text-xs rounded-lg text-white border border-slate-800"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[8px] font-mono text-slate-500 mb-1">Description (En)</label>
+                  <textarea 
+                    rows={2}
+                    value={panel.textEn}
+                    onChange={(e) => updateContent(c => { if (c.servicesLab?.carousel?.[idx]) { c.servicesLab.carousel[idx].textEn = e.target.value; } })}
+                    className="w-full px-2.5 py-1.5 bg-slate-950 text-xs rounded-lg text-white border border-slate-800 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[8px] font-mono text-slate-500 mb-1">Description (Ar)</label>
+                  <textarea 
+                    rows={2}
+                    value={panel.textAr}
+                    onChange={(e) => updateContent(c => { if (c.servicesLab?.carousel?.[idx]) { c.servicesLab.carousel[idx].textAr = e.target.value; } })}
+                    className="w-full px-2.5 py-1.5 bg-slate-950 text-xs rounded-lg text-white border border-slate-800 resize-none"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </AdminControlGroup>
+      </div>
     </motion.div>
   );
 }

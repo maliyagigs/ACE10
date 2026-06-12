@@ -16,7 +16,7 @@ export default function GlowingArtwork({ isBackground = false }: GlowingArtworkP
           width: 100%;
           overflow: hidden;
           ${isBackground 
-            ? 'position: absolute; inset: 0; height: 100%; z-index: 0; pointer-events: none; border: none; opacity: 0.38;' 
+            ? 'position: absolute; inset: 0; height: 100%; z-index: 0; pointer-events: none; border: none; opacity: 0.93;' 
             : 'height: 540px; position: relative; background: #020617; border-top: 1px solid #0f172a; border-bottom: 1px solid #0f172a;'
           }
         }

@@ -72,10 +72,38 @@ export interface QuoteInquiry {
   company?: string;
 }
 
+export interface ServicesLabItem {
+  id: string;
+  titleEn: string;
+  titleAr: string;
+  textEn: string;
+  textAr: string;
+  icon?: string;
+}
+
+export interface ServicesLab {
+  secGridTitleEn?: string;
+  secGridTitleAr?: string;
+  secGridSubEn?: string;
+  secGridSubAr?: string;
+  
+  secOrbitTitleEn?: string;
+  secOrbitTitleAr?: string;
+  secOrbitSubEn?: string;
+  secOrbitSubAr?: string;
+
+  ctaMoreEn?: string;
+  ctaMoreAr?: string;
+
+  cards?: ServicesLabItem[];
+  carousel?: ServicesLabItem[];
+}
+
 // ... existing interfaces ...
 
 export interface AppContent {
   siteName: string;
+  servicesLab?: ServicesLab;
   theme: {
     primaryColor: string; // Hex code
     secondaryColor: string;
