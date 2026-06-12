@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { animate, stagger } from 'animejs';
 import { motion } from 'motion/react';
 import { AppContent } from '../types';
+import HeroLayeredBackground from './HeroLayeredBackground';
 
 interface HeroProps {
   content: AppContent['hero'];
@@ -160,6 +161,9 @@ export default function Hero({ content, theme, isLoggedIn, onStartProject }: Her
       {/* Abstract Glowing Grid Mesh behind Hero */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f29370a_1px,transparent_1px),linear-gradient(to_bottom,#1f29370a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none -z-10" />
 
+      {/* Layered Animations Background */}
+      <HeroLayeredBackground theme={theme} />
+
       <div className="max-w-4xl mx-auto flex flex-col items-center justify-center">
         
         {/* Centered Content: Headline, Subheadline and CTAs */}
@@ -281,6 +285,43 @@ export default function Hero({ content, theme, isLoggedIn, onStartProject }: Her
               </div>
             </div>
           )}
+
+          {/* Premium Animated Scroll Down Indicator */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 0.7, y: 0 }}
+            whileHover={{ opacity: 1, scale: 1.05 }}
+            transition={{ delay: 1.5, duration: 0.8 }}
+            className="flex flex-col items-center gap-2 mt-16 text-slate-400 hover:text-white transition-all cursor-pointer group"
+            onClick={(e) => {
+              e.preventDefault();
+              const element = document.getElementById('services');
+              if (element) {
+                const elementRect = element.getBoundingClientRect();
+                const absoluteElementY = elementRect.top + window.scrollY - 80;
+                if (typeof (window as any).__triggerInertiaScroll === 'function') {
+                  (window as any).__triggerInertiaScroll(absoluteElementY);
+                } else {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }
+            }}
+          >
+            <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-slate-500 group-hover:text-emerald-450 transition-colors">Scroll to Explore</span>
+            <div className="w-6 h-10 rounded-full border-2 border-slate-800 group-hover:border-slate-500 p-1.5 flex justify-center transition-colors">
+              <motion.div 
+                animate={{ 
+                  y: [0, 12, 0] 
+                }}
+                transition={{ 
+                  duration: 1.6, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+                className="w-1 h-2 rounded-full bg-emerald-400"
+              />
+            </div>
+          </motion.div>
         </div>
 
       </div>

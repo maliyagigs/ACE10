@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { motion } from "motion/react";
 import { initialContent } from "./data";
 import { API_ENDPOINTS } from "./config";
 import { AppContent } from "./types";
@@ -200,34 +201,42 @@ export default function App() {
 
         {/* Desktop Quick links - centered in the middle */}
         <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-300 absolute left-1/2 -translate-x-1/2">
-          <a
+          <motion.a
             href="#services"
             onClick={(e) => scrollToSection("services", e)}
-            className="hover:text-white transition-colors duration-200"
+            whileHover={{ y: -2 }}
+            className="hover:text-white transition-colors duration-200 relative py-1.5 group font-mono text-[11px] uppercase tracking-widest font-bold"
           >
             Services
-          </a>
-          <a
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-emerald-400 group-hover:w-full transition-all duration-350 ease-out" />
+          </motion.a>
+          <motion.a
             href="#portfolio"
             onClick={(e) => scrollToSection("portfolio", e)}
-            className="hover:text-white transition-colors duration-200"
+            whileHover={{ y: -2 }}
+            className="hover:text-white transition-colors duration-200 relative py-1.5 group font-mono text-[11px] uppercase tracking-widest font-bold"
           >
             Portfolio
-          </a>
-          <a
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-emerald-400 group-hover:w-full transition-all duration-350 ease-out" />
+          </motion.a>
+          <motion.a
             href="#testimonials"
             onClick={(e) => scrollToSection("testimonials", e)}
-            className="hover:text-white transition-colors duration-200"
+            whileHover={{ y: -2 }}
+            className="hover:text-white transition-colors duration-200 relative py-1.5 group font-mono text-[11px] uppercase tracking-widest font-bold"
           >
             Testimonials
-          </a>
-          <a
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-emerald-400 group-hover:w-full transition-all duration-350 ease-out" />
+          </motion.a>
+          <motion.a
             href="#contact"
             onClick={(e) => scrollToSection("contact", e)}
-            className="hover:text-white transition-colors duration-200 px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-full hover:bg-slate-800"
+            whileHover={{ scale: 1.05, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            className="hover:text-white transition-all duration-350 px-5 py-2.5 bg-slate-900/50 border border-slate-800 rounded-full hover:bg-slate-850 hover:border-slate-700 font-mono text-[10px] uppercase tracking-widest font-bold shadow-md shadow-black/20"
           >
             Quote Request
-          </a>
+          </motion.a>
         </div>
 
         {/* Action Controls Group: Google Login + CMS / Design Mode */}

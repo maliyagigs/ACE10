@@ -2,6 +2,38 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as Icons from 'lucide-react';
 import { AppContent } from '../types';
 
+function PortfolioCardImage({ src, alt, className }: { src?: string; alt: string; className: string }) {
+  const [hasError, setHasError] = useState(false);
+  
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  const fallback = 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=1200&auto=format&fit=crop';
+  
+  let finalSrc = src || fallback;
+  if (hasError) {
+    finalSrc = fallback;
+  } else if (finalSrc.includes('images.unsplash.com')) {
+    // Automatically convert any low-resolution width properties to 1200px width for premium clarity
+    finalSrc = finalSrc.replace(/w=\d+/, 'w=1200').replace(/q=\d+/, 'q=90');
+    // If it lacks width parameter, ensure high resolution size is added
+    if (!finalSrc.includes('w=')) {
+      finalSrc += (finalSrc.includes('?') ? '&' : '?') + 'w=1200&q=90';
+    }
+  }
+  
+  return (
+    <img
+      src={finalSrc}
+      alt={alt}
+      className={className}
+      referrerPolicy="no-referrer"
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
 interface PortfolioProps {
   portfolio: AppContent['portfolio'];
   theme: AppContent['theme'];
@@ -9,43 +41,26 @@ interface PortfolioProps {
 }
 
 export default function Portfolio({ portfolio, header }: PortfolioProps) {
-  const [targetOffset, setTargetOffset] = useState(0);
   const [activeIdx, setActiveIdx] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   
   const targetOffsetRef = useRef(0);
   const currentOffsetRef = useRef(0);
-  const isDraggingRef = useRef(false);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  
-  const dragStartX = useRef(0);
-  const dragStartOffset = useRef(0);
   const sectionRef = useRef<HTMLDivElement>(null);
   const lastInteractionRef = useRef(Date.now());
+  const lastCenteredIndexRef = useRef(-1);
+  const pausedUntilRef = useRef(0);
 
   const resetInteraction = () => {
     lastInteractionRef.current = Date.now();
     const len = portfolio.length;
     if (len > 0) {
-      setTargetOffset((currTarget) => {
-        const roundedOffset = Math.floor(currentOffsetRef.current / len) * len;
-        currentOffsetRef.current -= roundedOffset;
-        targetOffsetRef.current -= roundedOffset;
-        return currTarget - roundedOffset;
-      });
+      const roundedOffset = Math.floor(currentOffsetRef.current / len) * len;
+      currentOffsetRef.current -= roundedOffset;
+      targetOffsetRef.current -= roundedOffset;
+      lastCenteredIndexRef.current = Math.round(currentOffsetRef.current);
     }
   };
-
-  // Sync state values with refs for zero-rendering background threads
-  useEffect(() => {
-    targetOffsetRef.current = targetOffset;
-  }, [targetOffset]);
-
-  useEffect(() => {
-    isDraggingRef.current = isDragging;
-  }, [isDragging]);
-
-
 
   // Handle window width for responsive layout
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
@@ -82,10 +97,11 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
   const cardHeight = getCardHeight();
   const radius = getRadius();
 
-  // Smooth interpolation loop (zero-re-render inert slider)
+  // Smooth inertial render loop
   useEffect(() => {
     if (!portfolio || portfolio.length === 0) return;
     let rId: number;
+    let lastTime = performance.now();
 
     const updateCardStyles = (offset: number) => {
       portfolio.forEach((_, idx) => {
@@ -105,16 +121,17 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
         const zIndex = Math.round((cosVal + 1) * 100);
         const isActiveElement = cosVal > 0.45;
 
-        // Apply hardware accelerated direct style mutations
-        card.style.transform = `translate3d(-50%, -50%, 0px) translate3d(${tx}px, 0px, ${tz}px) rotateY(${ry}deg) scale3d(${scale}, ${scale}, 1)`;
+        // Custom curve that lifts the element near the center (cosVal approaches 1)
+        const liftFactor = Math.pow(Math.max(0, cosVal), 8); 
+        const ty = -30 * liftFactor; // lift up by 30px at center peak
+
+        card.style.transform = `translate3d(-50%, -50%, 0px) translate3d(${tx}px, ${ty}px, ${tz}px) rotateY(${ry}deg) scale3d(${scale}, ${scale}, 1)`;
         card.style.opacity = String(opacity);
         card.style.zIndex = String(zIndex);
         card.style.pointerEvents = isActiveElement ? 'auto' : 'none';
         
-        // Setup transition speeds
-        card.style.transition = isDraggingRef.current ? 'none' : 'transform 150ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms cubic-bezier(0.16, 1, 0.3, 1)';
+        card.style.transition = 'transform 120ms cubic-bezier(0.16, 1, 0.3, 1), opacity 120ms cubic-bezier(0.16, 1, 0.3, 1)';
         
-        // Active border matching active index cleanly via class mutations
         const isCurrentActive = idx === activeIdx;
         if (isCurrentActive) {
           card.classList.add('border-blue-500/65', 'shadow-2xl', 'shadow-blue-500/20');
@@ -126,27 +143,41 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
       });
     };
 
-    const lerp = () => {
-      const diff = targetOffsetRef.current - currentOffsetRef.current;
-      const dragging = isDraggingRef.current;
+    const mainLoop = (time: number) => {
+      const dtMs = time - lastTime;
+      lastTime = time;
 
-      if (Math.abs(diff) < 0.001 && !dragging) {
-        currentOffsetRef.current = targetOffsetRef.current;
-        updateCardStyles(currentOffsetRef.current);
+      const dt = Math.min(3, dtMs / 16.666);
+      const now = Date.now();
+      const timeSinceInteraction = now - lastInteractionRef.current;
 
-        const rounded = Math.round(currentOffsetRef.current);
-        const computedActiveIdx = ((rounded % portfolio.length) + portfolio.length) % portfolio.length;
-
-        if (computedActiveIdx !== activeIdx) {
-          setActiveIdx(computedActiveIdx);
+      if (timeSinceInteraction > 3500) {
+        if (now < pausedUntilRef.current) {
+          // Stay 1 second! Keep currentOffset stationary
+        } else {
+          // Auto-spin beautifully and continuously with pristine inertial momentum
+          const speed = 0.005;
+          const nextOffset = currentOffsetRef.current + speed * dt;
+          
+          const nearestInteger = Math.round(nextOffset);
+          // Check if we approach the nearest integer very closely and haven't paused for it yet
+          if (nearestInteger !== lastCenteredIndexRef.current && 
+              Math.abs(nextOffset - nearestInteger) < speed * dt * 1.5) {
+            
+            // Snap perfectly to the exact center to keep it aligned during the dwell
+            currentOffsetRef.current = nearestInteger;
+            targetOffsetRef.current = nearestInteger;
+            pausedUntilRef.current = now + 1000; // pause for 1 second
+            lastCenteredIndexRef.current = nearestInteger;
+          } else {
+            currentOffsetRef.current = nextOffset;
+            targetOffsetRef.current = currentOffsetRef.current;
+          }
         }
-        return; // Halt the requestAnimationFrame cycle when completely settled
-      }
-
-      if (dragging) {
-        currentOffsetRef.current = targetOffsetRef.current;
       } else {
-        currentOffsetRef.current += diff * 0.12;
+        // Return/interpolate cleanly with inert ease to user's clicked page
+        const diff = targetOffsetRef.current - currentOffsetRef.current;
+        currentOffsetRef.current += diff * 0.08 * dt;
       }
 
       updateCardStyles(currentOffsetRef.current);
@@ -158,144 +189,42 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
         setActiveIdx(computedActiveIdx);
       }
 
-      rId = requestAnimationFrame(lerp);
+      rId = requestAnimationFrame(mainLoop);
     };
 
-    const initialDiff = targetOffsetRef.current - currentOffsetRef.current;
-    if (Math.abs(initialDiff) > 0.001 || isDraggingRef.current) {
-      rId = requestAnimationFrame(lerp);
-    } else {
-      updateCardStyles(currentOffsetRef.current);
-    }
-
+    rId = requestAnimationFrame(mainLoop);
     return () => {
       if (rId) cancelAnimationFrame(rId);
     };
-  }, [portfolio.length, radius, activeIdx, targetOffset, isDragging]);
-
-  // Auto spinning at medium speed when idle
-  useEffect(() => {
-    if (!portfolio || portfolio.length === 0) return;
-    let frameId: number;
-    let lastTime = performance.now();
-
-    const spin = (time: number) => {
-      const delta = time - lastTime;
-      lastTime = time;
-
-      const now = Date.now();
-      const timeSinceInteraction = now - lastInteractionRef.current;
-
-      // Auto-spin if we are not dragging and it has been > 3.5 seconds since last interaction
-      if (!isDraggingRef.current && timeSinceInteraction > 3500) {
-        // Comfortably fast automatic rotation speed
-        const speed = 0.0003;
-        setTargetOffset((prev) => prev + speed * delta);
-      }
-
-      frameId = requestAnimationFrame(spin);
-    };
-
-    frameId = requestAnimationFrame(spin);
-    return () => {
-      if (frameId) cancelAnimationFrame(frameId);
-    };
-  }, [portfolio.length]);
-
-  // Non-passive wheel event interceptor to lock and spin
-  useEffect(() => {
-    if (!portfolio || portfolio.length === 0) return;
-    const section = sectionRef.current;
-    if (!section) return;
-
-    let totalAccumulatedDelta = 0;
-
-    const handleWheel = (e: WheelEvent) => {
-      resetInteraction();
-      // Small threshold filter
-      if (Math.abs(e.deltaY) < 3) return;
-
-      const isScrollingDown = e.deltaY > 0;
-      
-      // Calculate normalized current index to lock between [0, portfolio.length - 1]
-      // Once it completes, we unlock page scroll to let user proceed
-      if (isScrollingDown) {
-        if (targetOffset < portfolio.length - 1) {
-          e.preventDefault();
-          // Scale scrolling increments nicely
-          const increment = Math.min(0.25, Math.abs(e.deltaY) * 0.0015);
-          setTargetOffset((prev) => Math.min(portfolio.length - 0.9, prev + increment));
-        }
-      } else {
-        if (targetOffset > 0) {
-          e.preventDefault();
-          const decrement = Math.min(0.25, Math.abs(e.deltaY) * 0.0015);
-          setTargetOffset((prev) => Math.max(0, prev - decrement));
-        }
-      }
-    };
-
-    section.addEventListener('wheel', handleWheel, { passive: false });
-    return () => {
-      section.removeEventListener('wheel', handleWheel);
-    };
-  }, [portfolio.length, targetOffset]);
-
-  // Pointer drag gestures
-  const handlePointerDown = (e: React.PointerEvent) => {
-    resetInteraction();
-    setIsDragging(true);
-    dragStartX.current = e.clientX;
-    dragStartOffset.current = targetOffset;
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    resetInteraction();
-    const dx = e.clientX - dragStartX.current;
-    const sensitivity = windowWidth < 768 ? 0.004 : 0.0025;
-    const newOffset = dragStartOffset.current - dx * sensitivity;
-    setTargetOffset(newOffset);
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    resetInteraction();
-    setIsDragging(false);
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-    // Snap cleanly to nearest integer index
-    setTargetOffset((prev) => Math.round(prev));
-  };
+  }, [portfolio.length, radius, activeIdx]);
 
   // Next / Prev triggers
   const handleNext = () => {
     resetInteraction();
-    setTargetOffset((prev) => Math.round(prev) + 1);
+    const currentRound = Math.round(currentOffsetRef.current);
+    targetOffsetRef.current = currentRound + 1;
   };
 
   const handlePrev = () => {
     resetInteraction();
-    setTargetOffset((prev) => Math.round(prev) - 1);
+    const currentRound = Math.round(currentOffsetRef.current);
+    targetOffsetRef.current = currentRound - 1;
   };
 
-  // Safe dot navigation - finding the closest circular offset matching that index
+  // Safe dot navigation
   const handleDotClick = (idx: number) => {
     resetInteraction();
-    const currentRound = Math.round(targetOffset);
+    const currentRound = Math.round(currentOffsetRef.current);
     const currentBase = Math.floor(currentRound / portfolio.length) * portfolio.length;
     let candidate = currentBase + idx;
-    if (Math.abs(candidate - targetOffset) > portfolio.length / 2) {
-      if (candidate > targetOffset) {
+    if (Math.abs(candidate - currentOffsetRef.current) > portfolio.length / 2) {
+      if (candidate > currentOffsetRef.current) {
         candidate -= portfolio.length;
       } else {
         candidate += portfolio.length;
       }
     }
-    setTargetOffset(candidate);
+    targetOffsetRef.current = candidate;
   };
 
   if (!portfolio || portfolio.length === 0) {
@@ -320,7 +249,7 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
               {header?.title || "Featured Portfolio"}
             </h2>
             <p id="portfolio-header-subtitle" className="text-slate-400 mt-2 max-w-xl">
-              {header?.description || "Spin through our latest designs. Drag left or right, use your scroll wheel inside the area, or use the controls below to discover our work in an immersive 3D cylinder."}
+              {header?.description || "Experience our latest designs in a continuously spinning 3D carousel. Use the navigation buttons and status indicators below to orbit between creations with smooth inertial physics."}
             </p>
           </div>
           
@@ -350,14 +279,10 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
       {/* 3D Immersive Cylinder Container */}
       <div 
         id="portfolio-horizontal-viewport" 
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
         style={{ 
           height: `${cardHeight + 60}px`,
         }}
-        className="relative w-full overflow-visible flex items-center justify-center cursor-grab active:cursor-grabbing [perspective:2000px]"
+        className="relative w-full overflow-visible flex items-center justify-center cursor-default [perspective:2000px]"
       >
         <div 
           id="portfolio-3d-stage"
@@ -382,85 +307,65 @@ export default function Portfolio({ portfolio, header }: PortfolioProps) {
             const isActiveElement = cosVal > 0.45;
             const pointerEvents = isActiveElement ? ('auto' as const) : ('none' as const);
 
-            return (
-              <div 
-                key={project.id}
-                ref={(el) => { if (cardsRef.current) cardsRef.current[idx] = el; }}
-                id={`portfolio-card-${project.id}`}
-                style={{ 
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  width: `${cardWidth}px`,
-                  height: `${cardHeight}px`,
-                  transform: `translate3d(-50%, -50%, 0px) translate3d(${tx}px, 0px, ${tz}px) rotateY(${ry}deg) scale3d(${scale}, ${scale}, 1)`,
-                  opacity: opacity,
-                  zIndex: zIndex,
-                  pointerEvents: pointerEvents,
-                  willChange: 'transform, opacity',
-                  transformStyle: 'preserve-3d',
-                  backfaceVisibility: 'hidden'
-                }}
-                className={`rounded-[1.5rem] md:rounded-[2rem] border overflow-hidden bg-slate-900/60 backdrop-blur-2xl flex flex-col group ${
-                  idx === activeIdx 
-                    ? 'border-blue-500/65 shadow-2xl shadow-blue-500/20' 
-                    : 'border-white/5 shadow-lg'
-                }`}
-              >
-                {/* Image container with Category overlay */}
-                <div className="relative w-full h-[52%] sm:h-[55%] overflow-hidden">
-                  <img
-                    src={project.image || 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=400&auto=format&fit=crop'}
-                    alt={project.title}
-                    className="w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform duration-[2000ms] brightness-90 group-hover:brightness-100"
-                    referrerPolicy="no-referrer"
-                  />
-                  
-                  {/* Category floating badge */}
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-slate-950/85 backdrop-blur-md text-blue-400 border border-blue-500/20 text-[10px] font-mono rounded-lg font-extrabold uppercase tracking-wider">
-                      {project.category || 'Digital Ecosystem'}
-                    </span>
+              const isActive = idx === activeIdx;
+
+              return (
+                <div 
+                  key={project.id}
+                  ref={(el) => { if (cardsRef.current) cardsRef.current[idx] = el; }}
+                  id={`portfolio-card-${project.id}`}
+                  style={{ 
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    width: `${cardWidth}px`,
+                    height: `${cardHeight}px`,
+                    transform: `translate3d(-50%, -50%, 0px) translate3d(${tx}px, 0px, ${tz}px) rotateY(${ry}deg) scale3d(${scale}, ${scale}, 1)`,
+                    opacity: opacity,
+                    zIndex: zIndex,
+                    pointerEvents: pointerEvents,
+                    willChange: 'transform, opacity',
+                    transformStyle: 'preserve-3d',
+                    backfaceVisibility: 'hidden'
+                  }}
+                  className={`rounded-[1.5rem] md:rounded-[2rem] border overflow-hidden flex flex-col justify-end group transition-all duration-300 ${
+                    isActive 
+                      ? 'border-white/50 shadow-[0_0_50px_rgba(255,255,255,0.18)] bg-white/5' 
+                      : 'border-white/10 shadow-lg bg-black/20'
+                  }`}
+                >
+                  {/* Full-bleed Background Image with dynamic highlight */}
+                  <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+                    <PortfolioCardImage
+                      src={project.image}
+                      alt={project.title}
+                      className={`w-full h-full object-cover transform scale-100 group-hover:scale-105 transition-transform duration-[2500ms] ${
+                        isActive 
+                          ? 'brightness-100 contrast-[1.05] saturate-[1.05]' 
+                          : 'brightness-[0.45] contrast-[0.95]'
+                      }`}
+                    />
+                    {/* Dynamic card gradient overlay - clean bottom vignette only on active card, heavy dark dimming on inactive cards */}
+                    <div className={`absolute inset-0 transition-opacity duration-300 ${
+                      isActive 
+                        ? 'bg-gradient-to-t from-black/50 via-transparent to-transparent' 
+                        : 'bg-gradient-to-t from-black/80 via-black/40 to-transparent'
+                    }`} />
                   </div>
 
-                  {/* Dark gradient overlap */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none" />
-                </div>
-
-                {/* Body content with details */}
-                <div className="p-5 flex flex-col justify-between flex-grow">
-                  <div className="space-y-1.5 sm:space-y-2">
-                    <h3 className="text-lg sm:text-xl font-extrabold text-white tracking-tight group-hover:text-blue-400 transition-colors">
-                      {project.title}
-                    </h3>
-                    <p className="text-slate-450 text-xs leading-relaxed line-clamp-2">
-                      {project.description}
-                    </p>
-                  </div>
-
-                  {/* Footer specs and navigation link */}
-                  <div className="border-t border-slate-850/60 pt-3 flex items-center justify-between mt-auto">
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-mono text-slate-500 tracking-wider">INTERFACE TECH</span>
-                      <span className="text-[11px] font-semibold text-slate-350">React / Tailwind</span>
+                  {/* White Text Overlays - Beautiful Frosted Glass text panel overlay */}
+                  <div className="relative z-10 p-6 sm:p-8 bg-black/40 backdrop-blur-[16px] border-t border-white/10 w-full pointer-events-none rounded-b-[1.5rem] md:rounded-[2rem]">
+                    <div className="space-y-2">
+                      <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-snug">
+                        {project.title}
+                      </h3>
+                      <p className="text-white text-xs sm:text-sm leading-relaxed opacity-90 font-light line-clamp-3">
+                        {project.description}
+                      </p>
                     </div>
-                    
-                    {project.webUrl && (
-                      <a
-                        href={project.webUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        id={`portfolio-btn-link-${project.id}`}
-                        className="px-3.5 py-1.5 rounded-xl bg-white text-slate-950 font-bold hover:bg-slate-100 transition-all text-xs flex items-center gap-1 shadow-md hover:-translate-y-0.5"
-                      >
-                        <span>Live Preview</span>
-                        <Icons.ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
                   </div>
                 </div>
-              </div>
-            );
+              );
           })}
         </div>
       </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import * as Icons from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppContent, Testimonial, Stat, Country } from '../../types';
-import { ImageUploader, AdminSectionHeader, AdminControlGroup } from './AdminCommon';
+import { ImageUploader, AdminSectionHeader, AdminControlGroup, SafeImage } from './AdminCommon';
 
 interface AdminContentPanelProps {
   key?: string;
@@ -76,14 +76,10 @@ export function AdminTestimonialsWorkspace({ content, updateContent, reorder }: 
         <div className="space-y-4 max-h-[600px] overflow-y-auto scrollbar-hide pr-2">
           {content.testimonials.map((t, idx) => (
             <div key={t.id} className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex items-start gap-4">
-              <img 
-                src={t.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop"} 
+              <SafeImage 
+                src={t.image} 
+                alt={t.name}
                 className="w-12 h-12 rounded-full border border-slate-800 shrink-0 object-cover" 
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop";
-                }}
               />
               <div className="flex-1 space-y-2">
                 <input value={t.name} onChange={(e) => updateContent(c => { c.testimonials[idx].name = e.target.value; })} className="bg-transparent font-bold text-white text-sm focus:outline-none" />

@@ -1,6 +1,83 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { motion } from 'framer-motion';
+
+export function SafeImage({ src, alt, className, referrerPolicy = "no-referrer", ...props }: React.ImgHTMLAttributes<HTMLImageElement>) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  if (hasError || !src) {
+    return (
+      <div className={`${className} bg-slate-950/80 border border-slate-800/80 flex items-center justify-center font-mono text-[9px] text-slate-500 uppercase shrink-0`}>
+        No Image
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      className={className}
+      alt={alt}
+      referrerPolicy={referrerPolicy}
+      onError={() => setHasError(true)}
+      {...props}
+    />
+  );
+}
+
+const compressAndConvertImage = (file: File, callback: (base64Url: string) => void) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const rawResult = e.target?.result as string || '';
+    if (!file.type.startsWith('image/')) {
+      callback(rawResult);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 600;
+      const MAX_HEIGHT = 600;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#0f172a';
+        ctx.drawImage(img, 0, 0, width, height);
+        // Compact premium JPEG compression
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+        callback(compressedBase64);
+      } else {
+        callback(rawResult);
+      }
+    };
+    img.onerror = () => {
+      callback(rawResult);
+    };
+    img.src = rawResult;
+  };
+  reader.readAsDataURL(file);
+};
 
 interface ImageUploaderProps {
   label?: string;
@@ -14,20 +91,26 @@ interface ImageUploaderProps {
 
 export function ImageUploader({ label, value, onChange, placeholder = "https://...", className = "", size = "normal", accept = "image/*" }: ImageUploaderProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsUploading(true);
       try {
-        const objectUrl = URL.createObjectURL(file);
-        onChange(objectUrl);
+        compressAndConvertImage(file, (base64Url) => {
+          onChange(base64Url);
+          setIsUploading(false);
+        });
       } catch (err) {
-        console.error("Failed to generate Object URL representation:", err);
+        console.error("Failed to process local image asset:", err);
+        setIsUploading(false);
       }
     }
   };
 
   const isLocal = value && (value.startsWith('data:image/') || value.startsWith('blob:'));
+
 
   if (size === 'compact') {
     return (
@@ -133,15 +216,10 @@ export function ImageUploader({ label, value, onChange, placeholder = "https://.
               <Icons.Video className="w-6 h-6 text-slate-500" />
             </div>
           ) : (
-            <img
+            <SafeImage
               src={value}
               alt="Preview"
               className="w-12 h-12 rounded-lg object-cover border border-slate-800 shadow-md"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?q=80&w=40&auto=format&fit=crop';
-              }}
-              referrerPolicy="no-referrer"
             />
           )}
           <div className="flex-1 min-w-0">
