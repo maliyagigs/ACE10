@@ -2,7 +2,6 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import { useRef, useState, useEffect } from 'react';
 import * as Icons from 'lucide-react';
 import { AppContent } from '../types';
-import NeonCityBackground from './NeonCityBackground';
 
 function TestimonialAvatar({ src, name }: { src?: string; name: string }) {
   const [hasError, setHasError] = useState(!src);
@@ -67,8 +66,6 @@ export default function Testimonials({ testimonials, theme, header }: Testimonia
       style={{ scale }}
       className="py-28 px-6 md:px-12 bg-slate-950/20 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative"
     >
-      {/* 3D Wireframe Neon City Landscape Background */}
-      <NeonCityBackground theme={theme} />
 
       <motion.div 
         style={{ y }}

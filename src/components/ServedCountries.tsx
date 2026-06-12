@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { AppContent } from '../types';
+import GlowingArtwork from './GlowingArtwork';
 
 interface ServedCountriesProps {
   countries: AppContent['countries'];
@@ -15,8 +16,11 @@ export default function ServedCountries({ countries, theme, header }: ServedCoun
   return (
     <section className="py-24 px-6 md:px-12 bg-slate-950/40 backdrop-blur-3xl border-t border-slate-900 overflow-hidden relative">
       
+      {/* Glowing Neon Line Art Background Underneath the Section */}
+      <GlowingArtwork isBackground={true} />
+      
       {/* Background World Map Vector Grid Lines */}
-      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#ffffff_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#ffffff_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0" />
 
       <div className="max-w-7xl mx-auto text-center relative z-10">
         

@@ -20,6 +20,7 @@ import WhyChooseUs from "./components/WhyChooseUs";
 import Stats from "./components/Stats";
 import Testimonials from "./components/Testimonials";
 import ServedCountries from "./components/ServedCountries";
+import GlowingArtwork from "./components/GlowingArtwork";
 import ContactForm from "./components/ContactForm";
 import Footer from "./components/Footer";
 import GoogleAuth from "./components/GoogleAuth";
