@@ -18,7 +18,6 @@ import Services from "./components/Services";
 import Portfolio from "./components/Portfolio";
 import WhyChooseUs from "./components/WhyChooseUs";
 import Stats from "./components/Stats";
-import SiteScores from "./components/SiteScores";
 import Testimonials from "./components/Testimonials";
 import ServedCountries from "./components/ServedCountries";
 import GlowingArtwork from "./components/GlowingArtwork";
@@ -361,9 +360,6 @@ export default function App() {
 
                   {/* Numerical counters section */}
                   <Stats stats={content.stats} theme={content.theme} />
-
-                  {/* Web Vitals and Lighthouse Audit scores Section */}
-                  <SiteScores theme={content.theme} />
 
                   {/* Handcrafted Services layout with organic vector shapes rendering behind cards */}
                   <Services

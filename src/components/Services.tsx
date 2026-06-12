@@ -305,6 +305,7 @@ export default function Services({ theme, header, servicesLab }: ServicesProps) 
           perspective: 1000px;
           perspective-origin: 50% 50%;
           filter: drop-shadow(0 28px 50px rgba(0, 40, 30, 0.45));
+          transition: filter 0.55s ease, transform 0.55s ease;
         }
 
         .ux-card {
@@ -322,9 +323,9 @@ export default function Services({ theme, header, servicesLab }: ServicesProps) 
         .ux-parent:hover .ux-card {
           transform: rotate3d(1, 1, 0, 25deg);
           box-shadow:
-            rgba(5, 71, 17, 0.45) 28px 48px 28px -38px,
-            rgba(0, 255, 214, 0.12) 0 0 60px -10px,
-            rgba(5, 71, 17, 0.15) 0 25px 35px 0;
+            var(--ux-shadow-color, rgba(5, 71, 17, 0.45)) 28px 48px 28px -38px,
+            var(--ux-glow-color, rgba(0, 255, 214, 0.12)) 0 0 60px -10px,
+            var(--ux-shadow-color, rgba(5, 71, 17, 0.15)) 0 25px 35px 0;
         }
 
         .ux-glass {
@@ -400,6 +401,12 @@ export default function Services({ theme, header, servicesLab }: ServicesProps) 
           fill: #fff;
         }
 
+        .ux-circle:nth-child(5) svg.lucide {
+          fill: none;
+          stroke: #fff;
+          stroke-width: 2.5px;
+        }
+
         .ux-parent:hover .ux-circle:nth-child(2) { transform: translate3d(0, 0, 60px); }
         .ux-parent:hover .ux-circle:nth-child(3) { transform: translate3d(0, 0, 80px); }
         .ux-parent:hover .ux-circle:nth-child(4) { transform: translate3d(0, 0, 100px); }
@@ -471,14 +478,17 @@ export default function Services({ theme, header, servicesLab }: ServicesProps) 
         .ux-social-btn svg {
           width: 15px;
           height: 15px;
-          fill: var(--ux-fill);
+          stroke: var(--ux-fill);
+          stroke-width: 2px;
+          fill: none;
         }
 
         .ux-social-btn:hover {
           background: #0f172a;
         }
         .ux-social-btn:hover svg {
-          fill: #fff;
+          stroke: #fff;
+          fill: none;
         }
 
         .ux-parent:hover .ux-social-btn {
@@ -525,33 +535,41 @@ export default function Services({ theme, header, servicesLab }: ServicesProps) 
           --ux-cta: #008f57;
           --ux-orbit: rgba(0, 249, 203, 0.22);
           --ux-fill: #006036;
+          --ux-shadow-color: rgba(5, 71, 17, 0.45);
+          --ux-glow-color: rgba(0, 255, 214, 0.2);
         }
 
         .ux-parent--violet {
           --ux-grad: linear-gradient(145deg, #a855f7 0%, #6366f1 40%, #ec4899 100%);
-          --ux-title: #2e0854;
-          --ux-body: rgba(46, 8, 84, 0.85);
-          --ux-cta: #7c3aed;
-          --ux-orbit: rgba(216, 180, 254, 0.35);
-          --ux-fill: #5b21b6;
+          --ux-title: #ffffff;
+          --ux-body: rgba(255, 255, 255, 0.85);
+          --ux-cta: #ffffff;
+          --ux-orbit: rgba(255, 255, 255, 0.25);
+          --ux-fill: #ffffff;
+          --ux-shadow-color: rgba(76, 29, 149, 0.55);
+          --ux-glow-color: rgba(236, 72, 153, 0.35);
         }
 
         .ux-parent--solar {
           --ux-grad: linear-gradient(135deg, #fbbf24 0%, #f97316 45%, #dc2626 100%);
-          --ux-title: #611f0a;
-          --ux-body: rgba(97, 31, 10, 0.88);
-          --ux-cta: #c2410c;
-          --ux-orbit: rgba(254, 243, 199, 0.4);
-          --ux-fill: #9a3412;
+          --ux-title: #ffffff;
+          --ux-body: rgba(255, 255, 255, 0.88);
+          --ux-cta: #ffffff;
+          --ux-orbit: rgba(255, 255, 255, 0.3);
+          --ux-fill: #ffffff;
+          --ux-shadow-color: rgba(120, 45, 10, 0.55);
+          --ux-glow-color: rgba(249, 115, 22, 0.35);
         }
 
         .ux-parent--ocean {
           --ux-grad: linear-gradient(155deg, #22d3ee 0%, #0284c7 50%, #1e3a8a 100%);
-          --ux-title: #06314a;
-          --ux-body: rgba(6, 49, 74, 0.88);
-          --ux-cta: #0369a1;
-          --ux-orbit: rgba(125, 211, 252, 0.35);
-          --ux-fill: #0e7490;
+          --ux-title: #ffffff;
+          --ux-body: rgba(255, 255, 255, 0.88);
+          --ux-cta: #22d3ee;
+          --ux-orbit: rgba(255, 255, 255, 0.25);
+          --ux-fill: #22d3ee;
+          --ux-shadow-color: rgba(15, 23, 42, 0.6);
+          --ux-glow-color: rgba(34, 211, 238, 0.35);
         }
 
         .ux-parent--prism {
@@ -561,6 +579,8 @@ export default function Services({ theme, header, servicesLab }: ServicesProps) 
           --ux-cta: #4338ca;
           --ux-orbit: rgba(255, 255, 255, 0.35);
           --ux-fill: #312e81;
+          --ux-shadow-color: rgba(15, 23, 42, 0.4);
+          --ux-glow-color: rgba(244, 114, 182, 0.2);
         }
 
         .ux-parent--void {
@@ -570,6 +590,8 @@ export default function Services({ theme, header, servicesLab }: ServicesProps) 
           --ux-cta: #c084fc;
           --ux-orbit: rgba(167, 139, 250, 0.25);
           --ux-fill: #c084fc;
+          --ux-shadow-color: rgba(15, 23, 42, 0.5);
+          --ux-glow-color: rgba(167, 139, 250, 0.3);
           box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.35);
         }
 
@@ -582,6 +604,15 @@ export default function Services({ theme, header, servicesLab }: ServicesProps) 
         .ux-parent--cut .ux-glass {
           border-radius: 32px !important;
           clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0 calc(100% - 14px), 0 14px);
+        }
+
+        .ux-parent--cut:hover {
+          filter: drop-shadow(28px 48px 25px var(--ux-shadow-color, rgba(46, 8, 84, 0.45)))
+                  drop-shadow(0 0 25px var(--ux-glow-color, rgba(168, 85, 247, 0.25)));
+        }
+
+        .ux-parent--cut:hover .ux-card {
+          box-shadow: none !important;
         }
 
         .ux-parent--wide .ux-card {
